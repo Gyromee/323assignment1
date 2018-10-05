@@ -24,6 +24,7 @@ public class LexicalAnalyzer {
     private boolean idNotDigitOrLetter = false; 
     private boolean keyWordFound = false;
     private ArrayList<String[]> output = new ArrayList<String[]>();
+    private int counter = 0;
     
 
 	
@@ -54,14 +55,17 @@ public class LexicalAnalyzer {
 
     		for (int i = 0; i < arraySize; i++){
     			charString = splitLine[i].toCharArray();
+    			
+    			if(Character.isDigit(charString[0])) {
+    				//digitsFSM(charString)
+    			}
+    			
+    			if(Character.isLetter(charString[0])) {
+    				 fsmIdAndKeyWord(arraySize, splitLine, counter);
+    			}
+    			counter++;
     		}		
-			if(Character.isDigit(charString[0])) {
-				//digitsFSM(charString)
-			}
-			
-			if(Character.isLetter(charString[0])) {
-				 fsmIdAndKeyWord(arraySize, splitLine);
-			}
+
     	}
             		
     } 
@@ -69,12 +73,9 @@ public class LexicalAnalyzer {
 }
 	
 	//fsm for identifier
-	public void fsmIdAndKeyWord(int arraySize, String spltLine[])
+	public void fsmIdAndKeyWord(int arraySize, String spltLine[], int counter)
 	{
-		
-		for (int i = 0; i < arraySize; i++){
-			//split the string into char's
-			charString = splitLine[i].toCharArray();
+			charString = splitLine[counter].toCharArray();
 			
 			if(Character.isLetter(charString[0])){
 				for (int k = 0; k < charString.length; k++){
@@ -102,16 +103,16 @@ public class LexicalAnalyzer {
 				//If there was a non ASCII character detected, it won't be an identifier
 				//If there was a digit at the end of the string, it is not an identifier
 				if(idNotDigitOrLetter == true || idNotEndWithLetter == true){
-					System.out.println(splitLine[i] + " is not an identifier");
+					System.out.println(splitLine[counter] + " is not an identifier");
 					
 				}
 				//If it did end with a letter, check to see if it is a keyword or not
 				if(idNotEndWithLetter == false){
 					//Check if its a keyword, if not its an identifier
 					for (int j = 0; j < keywordSize; j++){
-	    				if(keywords[j].equals(splitLine[i])){
-	    					System.out.println(splitLine[i] +"IM A KEYWORD");
-	    					output.add(new String[] {"Keyword", splitLine[i]});
+	    				if(keywords[j].equals(splitLine[counter])){
+	    					System.out.println(splitLine[counter] +" IM A KEYWORD");
+	    					output.add(new String[] {"Keyword", splitLine[counter]});
 	    					//Set keywordfound to true that you have found a keyword match
 	    					keyWordFound = true;
 	    				}	
@@ -119,8 +120,8 @@ public class LexicalAnalyzer {
 				}
 				// If it did end with a letter and the keyword was not found, it is an identifier
 				if(idNotEndWithLetter == false && keyWordFound == false){
-					System.out.println(splitLine[i] +"Im an identifier");
-					output.add(new String[] {"Identifier", splitLine[i]});
+					System.out.println(splitLine[counter] +" Im an identifier");
+					output.add(new String[] {"Identifier", splitLine[counter]});
 				}
 				
 			//Switch back the boolean values to false to restart the loop with all false.
@@ -130,7 +131,6 @@ public class LexicalAnalyzer {
 			}	
 		}
 	}
-}
 	
 	
 	
