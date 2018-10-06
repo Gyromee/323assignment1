@@ -30,6 +30,7 @@ public class LexicalAnalyzer {
     private static final int integer = 5;
     private static final int real = 6;
     private static final int identifier = 7;
+	private static final int keyword = 8;
     private int currentState;
 	private int inputLetter = 0;
 	private int inputDigit = 1;
@@ -68,7 +69,8 @@ public class LexicalAnalyzer {
             		digitsFSM(charString);           			
     			}
     			if(Character.isLetter(charString[0])) {
-   				 //fsmIdAndKeyWord(arraySize, splitLine);
+    				currentState = tableFSM[startingState][inputLetter];
+    				IdAndKeyWordFSM(charString);
     			}
     		}							
     	}
@@ -81,69 +83,84 @@ public class LexicalAnalyzer {
     } 
       
 }
-	
-	//fsm for identifier
-//	public void fsmIdAndKeyWord(int arraySize, String spltLine[])
-//	{
-//		
-//		for (int i = 0; i < arraySize; i++){
-//			//split the string into char's
-//			charString = splitLine[i].toCharArray();
-//			
-//			if(Character.isLetter(charString[0])){
-//				for (int k = 0; k < charString.length; k++){
-//					if(Character.isLetter(charString[k])){
-//						//If it encounters a letter in the string, make idFail to 1.
-//						idFail = 1;
-//					}
-//					if(Character.isDigit(charString[k])){
-//						//If it encounters a digit in the string, make idFail to 1.
-//						idFail = 1;
-//						if (k == charString.length - 1){
-//							//If it encountered a digit, and it is the last char in the string
-//							//Make the boolean value to true
-//							idNotEndWithLetter = true;
-//						}
-//					}
-//					if(idFail == 0){
-//						//If it did not detect a digit or a letter because none of the
-//						//idFail were set to 1, that means a non ASCII character was identified
-//						idNotDigitOrLetter = true; 
-//					}
-//					//Set it back to 0 to restart this loop
-//					idFail = 0;	
-//				}
-//				//If there was a non ASCII character detected, it won't be an identifier
-//				//If there was a digit at the end of the string, it is not an identifier
-//				if(idNotDigitOrLetter == true || idNotEndWithLetter == true){
-//					System.out.println(splitLine[i] + " is not an identifier");
-//					
-//				}
-//				//If it did end with a letter, check to see if it is a keyword or not
-//				if(idNotEndWithLetter == false){
-//					//Check if its a keyword, if not its an identifier
-//					for (int j = 0; j < keywordSize; j++){
-//	    				if(keywords[j].equals(splitLine[i])){
-//	    					System.out.println(splitLine[i] +"IM A KEYWORD");
-//	    					output.add(new String[] {"Keyword", splitLine[i]});
-//	    					//Set keywordfound to true that you have found a keyword match
-//	    					keyWordFound = true;
-//	    				}	
-//					}	
-//				}
-//				// If it did end with a letter and the keyword was not found, it is an identifier
-//				if(idNotEndWithLetter == false && keyWordFound == false){
-//					System.out.println(splitLine[i] +"Im an identifier");
-//					output.add(new String[] {"Identifier", splitLine[i]});
-//				}
-//				
-//			//Switch back the boolean values to false to restart the loop with all false.
-//			keyWordFound = false; 
-//			idNotEndWithLetter = false;  
-//			idNotDigitOrLetter = false; 
-//			}	
-//		}
-//	}
+	public void IdAndKeyWordFSM(char[] charString)
+	{
+		String token = "";
+		
+		for (int k = 0; k < charString.length; k++){		
+			String temp = "";
+			temp += charString[k];			
+			boolean endsWithSeparator = checkSeparator(temp);
+			boolean endsWithOperator = checkOperator(temp);
+			
+			if (Character.isLetter(charString[k])) {
+				currentState = tableFSM[currentState][inputLetter];
+				
+			}
+			else if(Character.isDigit(charString[k])){
+				
+				currentState = tableFSM[currentState][inputDigit];
+			
+			}
+			else if(endsWithOperator == true) {
+				for(int i = 0; i < keywordSize; i++) {
+					if(token.equals(keywords[i])) {
+						currentState = 8;	
+						break;
+					}
+					else {
+					}
+				}
+				finishedState(token);
+				token = "";
+				output.add(new String[] {"Operator", temp});
+				//System.out.println("input: " + temp );
+				currentState = 1;
+				endsWithOperator = false;
+				temp = "";
+											
+			}
+			//User inputs a separator, token is finished
+			else if(endsWithSeparator == true) {
+				for(int i = 0; i < keywordSize; i++) {
+					if(token.equals(keywords[i])) {
+						currentState = 8;	
+						break;
+					}
+					else {
+					}
+				}
+				finishedState(token);
+				token = "";
+				output.add(new String[] {"Separator", temp});
+				//System.out.println("input: " + temp );	
+				currentState = 1;
+				endsWithSeparator = false;
+				
+				
+			}
+			else {
+				//Any other input is invalid
+				System.out.println("input: " + temp + "     current state: " + currentState);
+				error();
+				break;
+			}
+			token +=charString[k];
+			
+			System.out.println("input: " + temp + "     current state: " + currentState);
+			
+		}
+		for(int i = 0; i < keywordSize; i++) {
+			if(token.equals(keywords[i])) {
+				currentState = 8;
+				break;
+			}
+			else {
+			}
+		}
+		finishedState(token);
+		System.out.println("");
+	}
 	
 	public void digitsFSM(char[] charString) {
 		String token = "";
@@ -208,6 +225,9 @@ public class LexicalAnalyzer {
 	    case identifier:
 	    	output.add(new String[] {"Identifier", token});
 	        break;
+		case keyword:
+	    	output.add(new String[] {"Keyword", token});
+	    	break;
 	    case invalid:
 	    	error();
 	    	break;
