@@ -128,20 +128,31 @@ public class LexicalAnalyzer {
 			}
 			else if(temp.equals(".")) {
 				//If it encounters a dot, it must be a real
+				finishedState(token);
 				currentState = tableFSM[currentState][inputDot];
-			}
+				if (currentState == 2) {
+					System.out.println(temp);
+					output.add(new String[] {"Invalid         ", temp});
+					token = "";
+					currentState = 1;
+					continue;
+					}
+					
+				}
 			
+			//If we encountered a separator 
 			else if(isSeparatorDollarSign == true) {
 				if(k < charString.length - 1) {
 					char temp1;
 					temp1 = charString[k+1];
-					
+					//if the token starts with $
 					if(token.equals("") && temp1 == ('$')) {
 						output.add(new String[] {"Separator       ", temp+temp1});
 						token = "";
 						k +=1;
 						continue;
 					}
+					//if the token did not start with $
 					if(temp1 == ('$') && !token.equals("")) {
 						finishedState(token);
 						output.add(new String[] {"Separator       ", temp+temp1});
@@ -149,14 +160,15 @@ public class LexicalAnalyzer {
 						k +=1;
 						continue;
 					}
+					//if none of above
 					else if (!token.equals("")){
-						
 						finishedState(token);
 						token = "";
 						output.add(new String[] {"Invalid         ", temp});
 						token = "";
 						continue;
 					}
+					//if this is string is only a $
 					else {
 						output.add(new String[] {"Invalid         ", temp});
 						token = "";
@@ -225,7 +237,8 @@ public class LexicalAnalyzer {
 				}
 				//
 				if (currentState == 4) 
-					output.add(new String[] {"Invalid         ", token});							
+					output.add(new String[] {"Invalid         ", token});	
+			
 				token = "";		
 				output.add(new String[] {"Operator        ", temp});				
 				System.out.println("input: " + temp );					
