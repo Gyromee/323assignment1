@@ -79,6 +79,7 @@ public class LexicalAnalyzer {
     				//Incase split string is only operators
     				else if(splitLine[i].matches("[=\\^><\\*\\+\\-\\/]+")){
     					currentState = 1;
+    					
     					output.add(new String[] {"Operator        ", splitLine[i]});				
     					System.out.println("input: " + splitLine[i] );	
 	    				break;
@@ -86,6 +87,7 @@ public class LexicalAnalyzer {
     				//Incase split string is only Separators
     				 else if(splitLine[i].matches("(\\$\\$)|\\(|\\)|\\{|\\}|;|,|:")){
     					currentState = 1;
+    					
     					output.add(new String[] {"Separator        ", splitLine[i]});				
     					System.out.println("input: " + splitLine[i] );	
 	    				break;
@@ -227,6 +229,9 @@ public class LexicalAnalyzer {
 			//User inputs a digit, progress on the table accordingly
 			if(Character.isDigit(charString[k])){			
 				currentState = tableFSM[currentState][inputDigit];			
+			}
+			if (Character.isLetter(charString[k])) {
+				currentState = tableFSM[currentState][inputLetter];				
 			}
 			//User inputs a period, progress on the table accordingly
 			else if(temp.equals(".")) {
