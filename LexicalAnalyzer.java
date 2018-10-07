@@ -126,6 +126,10 @@ public class LexicalAnalyzer {
 			else if(Character.isDigit(charString[k])){			
 				currentState = tableFSM[currentState][inputDigit];			
 			}
+			else if(temp.equals(".")) {
+				//If it encounters a dot, it must be a real
+				currentState = tableFSM[currentState][inputDot];
+			}
 			
 			else if(isSeparatorDollarSign == true) {
 				if(k < charString.length - 1) {
@@ -174,6 +178,7 @@ public class LexicalAnalyzer {
 					temp1 = charString[k+1];
 					if(temp1 == ('=')) {
 						if(temp.equals("^")){
+							finishedState(token);
 							output.add(new String[] {"Operator        ", temp+temp1});
 							k += 1;
 							token = "";
