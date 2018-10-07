@@ -34,7 +34,7 @@ public class LexicalAnalyzer {
 	private boolean isOperator;
 	private boolean isSeparator;
 	private boolean isOperatorUpArrow;
-	
+	private boolean isOperatorDollarSign;
 	
 	//Constructor
     public LexicalAnalyzer(String input) {
@@ -76,19 +76,12 @@ public class LexicalAnalyzer {
 	    				IdAndKeyWordFSM(charString);
 	    				break;
 	    			}
-    				//Incase split string is only operators
-    				else if(splitLine[i].matches("[=\\^><\\*\\+\\-\\/]+")){
+
+    				//Incase split string is only Separators and/or operators
+    				 else if(splitLine[i].matches("[(\\$\\$)|\\(|\\)|\\{|\\}|;|,|:\\=\\\\^><\\\\*\\\\+\\\\-\\\\/]+")){
     					currentState = 1;
-    					
-    					output.add(new String[] {"Operator        ", splitLine[i]});				
-    					System.out.println("input: " + splitLine[i] );	
-	    				break;
-    				}
-    				//Incase split string is only Separators
-    				 else if(splitLine[i].matches("(\\$\\$)|\\(|\\)|\\{|\\}|;|,|:")){
-    					currentState = 1;
-    					
-    					output.add(new String[] {"Separator        ", splitLine[i]});				
+    					IdAndKeyWordFSM(charString);
+    					//output.add(new String[] {"Separator        ", splitLine[i]});				
     					System.out.println("input: " + splitLine[i] );	
 	    				break;
     				}				
@@ -110,6 +103,7 @@ public class LexicalAnalyzer {
 		isSeparator = false;
 		isOperator = false;
 		isOperatorUpArrow = false;
+		isOperatorDollarSign = false;
 		//Iterate through potential tokens one character at a time
 		for (int k = 0; k < charString.length; k++){		
 			String temp = "";
@@ -117,6 +111,7 @@ public class LexicalAnalyzer {
 			isSeparator = checkSeparator(temp);
 			isOperator = checkOperator(temp);	
 			isOperatorUpArrow = checkOperatorUpArrow(temp);
+			isOperatorDollarSign = checkOperatorDollarSign(temp);
 			
 			//Check if character is a letter, adjust state accordingly
 			if (Character.isLetter(charString[k])) {
@@ -127,6 +122,20 @@ public class LexicalAnalyzer {
 				currentState = tableFSM[currentState][inputDigit];			
 			}
 			
+			else if(isOperatorDollarSign == true) {
+				if(k < charString.length - 1) {
+					char temp1;
+					temp1 = charString[k+1];
+					if(temp1 == ('$')) {
+						finishedState(token);
+						output.add(new String[] {"Operator        ", temp+temp1});
+						k +=1;
+					}
+				}
+				else
+					output.add(new String[] {"Invalid         ", token});
+			}
+				
 			else if(isOperatorUpArrow == true) {
 				if(k < charString.length - 1) {
 					char temp1;
@@ -333,6 +342,13 @@ public class LexicalAnalyzer {
 		return isOperatorUpArrow;
 	}
 
+	private boolean checkOperatorDollarSign(String temp) {
+		boolean isOperatorDollarSign = false;
+		if(temp.equals("$"))
+			isOperatorDollarSign = true;
+		return isOperatorDollarSign;
+	}
+	
 	private boolean checkSeparator(String temp) {
 		boolean isSeparator = false;
 		for(int i = 0; i < Separator.length; i++) {
