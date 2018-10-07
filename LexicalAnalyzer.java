@@ -1,4 +1,3 @@
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
@@ -35,7 +34,8 @@ public class LexicalAnalyzer {
 	private int inputLetter = 0;
 	private int inputDigit = 1;
 	private int inputDot = 2;
-	
+	private boolean isOperator;
+	private boolean isSeparator;
 	
 	
 	//Constructor
@@ -49,8 +49,9 @@ public class LexicalAnalyzer {
     	BufferedWriter wr = new BufferedWriter(new FileWriter("text2.txt"));
     	lineNumber = 1;
         
+    	//Read in a line one by one
         while((line = br.readLine())!= null) {
-        	//Trim the line read in by strings and whitespaces
+        	//Trim whitespaces from line and store in string array
             splitLine = line.trim().split("\\s+");
             
             //arraySize is the the amount of strings that were in the line
@@ -62,115 +63,133 @@ public class LexicalAnalyzer {
             //split the string into their own chars
     		for (int i = 0; i < arraySize; i++){
     			charString = splitLine[i].toCharArray();
-    			
-    			if(Character.isDigit(charString[0])) {
+    			//String temp = "";
+    			//temp += charString[i];
+    			//Determine which finite state machine to use
+    			for (int j = 0; j < charString.length; j++) {
     				//Call FSM for digit input
-    				currentState = tableFSM[startingState][inputDigit];
-            		digitsFSM(charString);           			
+    				if(Character.isDigit(charString[j])) {    				
+	    				currentState = tableFSM[startingState][inputDigit];
+	            		digitsFSM(charString);  
+	            		break;
+	    			}
+    				//Call FSM for identifiers and reals
+    				else if(Character.isLetter(charString[j])) {
+	    				currentState = tableFSM[startingState][inputLetter];
+	    				IdAndKeyWordFSM(charString);
+	    				break;
+	    			}
+    				//Incase split string is only operators
+    				else if(splitLine[i].matches("[=\\^><\\*\\+\\-\\/]+")){
+    					currentState = 1;
+    					output.add(new String[] {"Operator        ", splitLine[i]});				
+    					System.out.println("input: " + splitLine[i] );	
+	    				break;
+    				}
+    				//Incase split string is only Separators
+    				else if(splitLine[i].matches("(\\$\\$)|\\(|\\)|\\{|\\}|;|,")){
+    					currentState = 1;
+    					output.add(new String[] {"Operator        ", splitLine[i]});				
+    					System.out.println("input: " + splitLine[i] );	
+	    				break;
+    				}				
     			}
-    			if(Character.isLetter(charString[0])) {
-    				currentState = tableFSM[startingState][inputLetter];
-    				IdAndKeyWordFSM(charString);
-    			}
-    		}							
-    	}
-       
+    		}
+    	}							
         //Output all tokens found
         System.out.println("Tokens          Lexeme");
         for (String[] row : output) {
-	        System.out.println(row[0] + "          " + row[1]);
+	        System.out.println(row[0] + row[1]);
 	    }
-    } 
-      
+    }    
 }
-	public void IdAndKeyWordFSM(char[] charString)
-	{
+	public void IdAndKeyWordFSM(char[] charString){
 		String token = "";
-		
+		isSeparator = false;
+		isOperator = false;
+		//Iterate through potential tokens one character at a time
 		for (int k = 0; k < charString.length; k++){		
 			String temp = "";
 			temp += charString[k];			
-			boolean endsWithSeparator = checkSeparator(temp);
-			boolean endsWithOperator = checkOperator(temp);
+			isSeparator = checkSeparator(temp);
+			isOperator = checkOperator(temp);	
 			
+			//Check if character is a letter, adjust state accordingly
 			if (Character.isLetter(charString[k])) {
-				currentState = tableFSM[currentState][inputLetter];
-				
+				currentState = tableFSM[currentState][inputLetter];				
 			}
-			else if(Character.isDigit(charString[k])){
-				
-				currentState = tableFSM[currentState][inputDigit];
-			
+			//Check if character is a digit, adjust state accordingly
+			else if(Character.isDigit(charString[k])){			
+				currentState = tableFSM[currentState][inputDigit];			
 			}
-			else if(endsWithOperator == true) {
-				for(int i = 0; i < keywordSize; i++) {
-					if(token.equals(keywords[i])) {
-						currentState = 8;	
-						break;
-					}
-					else {
-					}
-				}
-				finishedState(token);
-				token = "";
-				output.add(new String[] {"Operator", temp});
-				//System.out.println("input: " + temp );
-				currentState = 1;
-				endsWithOperator = false;
-				temp = "";
-											
-			}
-			//User inputs a separator, token is finished
-			else if(endsWithSeparator == true) {
-				for(int i = 0; i < keywordSize; i++) {
-					if(token.equals(keywords[i])) {
-						currentState = 8;	
-						break;
-					}
-					else {
+			//User inputs operator, determine completed tokens
+			else if(isOperator == true) {
+				//Add the completed token to the output
+				if (!token.equals(""))
+					finishedState(token);	
+				//Check first for double operators such as ==
+				if(charString.length -1 > k) {
+					String temp2 = "";				
+					temp2 += charString[k+1];
+					if (checkOperator(temp+temp2)) {
+						token = "";		
+						output.add(new String[] {"Operator        ", temp+temp2});				
+						System.out.println("input: " + temp+temp2 );
+						k++;
+						continue;
 					}
 				}
-				finishedState(token);
-				token = "";
-				output.add(new String[] {"Separator", temp});
-				//System.out.println("input: " + temp );	
-				currentState = 1;
-				endsWithSeparator = false;
-				
-				
+				//
+				if (currentState == 4) 
+					output.add(new String[] {"Invalid         ", token});							
+				token = "";		
+				output.add(new String[] {"Operator        ", temp});				
+				System.out.println("input: " + temp );					
+				continue;			
 			}
-			else {
-				//Any other input is invalid
-				System.out.println("input: " + temp + "     current state: " + currentState);
-				error();
-				break;
+			//User inputs a separator, determine completed tokens
+			else if(isSeparator == true) {
+				if (currentState == 4) 
+					output.add(new String[] {"Invalid         ", token});				
+				if (!token.equals(""))
+					finishedState(token);					
+				token = "";	
+				output.add(new String[] {"Separator       ", temp});				
+				System.out.println("input: " + temp );					
+				continue;			
 			}
-			token +=charString[k];
+			//Keep adding to token until it is complete
+			token +=charString[k];			
 			
-			System.out.println("input: " + temp + "     current state: " + currentState);
-			
+			//Testing outputs and inputs
+			System.out.println("input: " + temp + "     current state: " + currentState);		
 		}
+	
+		//Check if the token being built is a keyword or not
 		for(int i = 0; i < keywordSize; i++) {
 			if(token.equals(keywords[i])) {
 				currentState = 8;
 				break;
 			}
-			else {
-			}
 		}
-		finishedState(token);
+		//Add completed token to list of outputs
+		if (!token.equals(""))
+			finishedState(token);
 		System.out.println("");
-	}
+	
+}
+		
 	
 	public void digitsFSM(char[] charString) {
 		String token = "";
-		boolean endsWithSeparator = false;
-		boolean endsWithOperator = false;
+		isSeparator = false;
+		isOperator = false;
+		//Iterate through potential tokens one character at a time
 		for (int k = 0; k < charString.length; k++){		
 			String temp = "";		
 			temp += charString[k];			
-			endsWithSeparator = checkSeparator(temp);
-			endsWithOperator = checkOperator(temp);
+			isSeparator = checkSeparator(temp);
+			isOperator = checkOperator(temp);
 			
 			//User inputs a digit, progress on the table accordingly
 			if(Character.isDigit(charString[k])){			
@@ -182,34 +201,55 @@ public class LexicalAnalyzer {
 				currentState = tableFSM[currentState][inputDot];
 			}
 			//User inputs an operator, token is finished
-			else if(endsWithOperator == true) {				
-				output.add(new String[] {"Operator", temp});				
-				System.out.println("input: " + temp );
-				finishedState(token);					
-				token = "";			
+			else if(isOperator == true) {
+				//Add the completed token to the output
+				if (!token.equals(""))
+					finishedState(token);	
+				//Check first for double operators such as ==
+				if(charString.length -1 > k) {
+					String temp2 = "";				
+					temp2 += charString[k+1];
+					if (checkOperator(temp+temp2)) {
+						token = "";		
+						output.add(new String[] {"Operator        ", temp+temp2});				
+						System.out.println("input: " + temp+temp2 );	
+						k++;
+						continue;
+					}
+				}
+				//Check for invalid inputs
+				if (currentState == 3) 
+					output.add(new String[] {"Invalid         ", token});	
+				//Add single operators to list of outputs
+				token = "";
+				output.add(new String[] {"Operator        ", temp});				
+				System.out.println("input: " + temp );				
 				continue;
 			}
 			//User inputs a separator, token is finished
-			else if(endsWithSeparator == true) {
-				output.add(new String[] {"Operator", temp});				
-				System.out.println("input: " + temp );
-				finishedState(token);					
-				token = "";			
+			else if(isSeparator == true) {
+				if (currentState == 3) 
+					output.add(new String[] {"Invalid         ", token});
+				if (!token.equals(""))
+					finishedState(token);					
+				token = "";	
+				output.add(new String[] {"Separator       ", temp});				
+				System.out.println("input: " + temp );					
 				continue;										
 			}
-			//User input is invalid
-			else {
-				System.out.println("input: " + temp + "     current state: " + currentState);
-				error();
-				break;
-			}
-			token +=charString[k];		
-			System.out.println("input: " + temp + "     current state: " + currentState);
 			
+			//Keep adding to token until it is complete
+			token +=charString[k];		
+			
+			//Testing outputs and inputs
+			System.out.println("input: " + temp + "     current state: " + currentState);		
 		}
-		if (endsWithSeparator == false && endsWithOperator == false) {
+		
+		//Add completed digit token to list of outputs
+		if (isSeparator == false && isOperator == false) {
 			finishedState(token);
 		}			
+			
 			System.out.println("");
 	}
 	
@@ -217,21 +257,21 @@ public class LexicalAnalyzer {
 	private void finishedState(String token) {
 		switch (currentState){
 	    case integer: 
-	    	output.add(new String[] {"Integer", token});        
+	    	output.add(new String[] {"Integer         ", token});        
 	        break;
 	    case real: 
-	    	output.add(new String[] {"Real", token});
+	    	output.add(new String[] {"Real            ", token});
 	        break;
 	    case identifier:
-	    	output.add(new String[] {"Identifier", token});
+	    	output.add(new String[] {"Identifier      ", token});
 	        break;
 		case keyword:
-	    	output.add(new String[] {"Keyword", token});
+	    	output.add(new String[] {"Keyword         ", token});
 	    	break;
 	    case invalid:
-	    	error();
+	    	output.add(new String[] {"Invalid         ", token});
 	    	break;
-	    	default:
+	    default:
 	    		break;	    		
 		}
 		currentState = 1;	
@@ -242,6 +282,7 @@ public class LexicalAnalyzer {
 		for(int i = 0; i < Operator.length; i++) {
 			if (Operator[i].equals(temp))
 				isOperator = true;
+				
 		}					
 			return isOperator;
 	}
@@ -250,22 +291,11 @@ public class LexicalAnalyzer {
 		boolean isSeparator = false;
 		for(int i = 0; i < Separator.length; i++) {
 			if (Separator[i].equals(temp))
-				isSeparator = true;
+				isSeparator = true;		
 		}					
 			return isSeparator;
 	}
 
-	public void error() {
-		System.out.println("Error.");
-    	System.out.println("Invalid input detected on line: " + lineNumber);
-    }
+	
     
 }
-	
-	
-	
-	
-
-
-
-
