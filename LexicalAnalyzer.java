@@ -197,6 +197,11 @@ public class LexicalAnalyzer {
 					}
 					
 				}
+				else {
+					output.add(new String[] {"Invalid         ", temp});
+					token = "";
+					continue;
+				}
 	
 
 			}
