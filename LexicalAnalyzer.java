@@ -136,9 +136,12 @@ public class LexicalAnalyzer {
 						output.add(new String[] {"Operator        ", temp+temp1});
 						k +=1;
 					}
+					else
+						output.add(new String[] {"Invalid         ", temp});
 				}
 				else
-					output.add(new String[] {"Invalid         ", token});
+					output.add(new String[] {"Invalid         ", temp});
+
 			}
 				
 			else if(isOperatorUpArrow == true) {
@@ -146,18 +149,21 @@ public class LexicalAnalyzer {
 					char temp1;
 					temp1 = charString[k+1];
 					if(temp1 == ('=')) {
-						finishedState(token);
-						output.add(new String[] {"Operator        ", temp+temp1});
-						k += 1;
+						if(temp.equals("^")){
+							output.add(new String[] {"Operator        ", temp+temp1});
+							k += 1;
+							continue;
+
+						}
+						else
+							output.add(new String[] {"Invalid         ", temp});
 					}
-						
+					else
+						output.add(new String[] {"Invalid         ", temp});
+												
 					
 				}
-				//else {
-				//	finishedState(token);
-					//output.add(new String[] {"Operator        ", temp});
-			//	}
-					
+	
 
 			}
 				
@@ -239,6 +245,8 @@ public class LexicalAnalyzer {
 			temp += charString[k];			
 			isSeparator = checkSeparator(temp);
 			isOperator = checkOperator(temp);
+			isOperatorUpArrow = checkOperatorUpArrow(temp);
+			isOperatorDollarSign = checkOperatorDollarSign(temp);
 			
 			//User inputs a digit, progress on the table accordingly
 			if(Character.isDigit(charString[k])){			
@@ -252,11 +260,46 @@ public class LexicalAnalyzer {
 				//If it encounters a dot, it must be a real
 				currentState = tableFSM[currentState][inputDot];
 			}
+			else if(isOperatorDollarSign == true) {
+				if(k < charString.length - 1) {
+					char temp1;
+					temp1 = charString[k+1];
+					if(temp1 == ('$')) {
+						finishedState(token);
+						output.add(new String[] {"Operator        ", temp+temp1});
+						k +=1;
+					}
+					else
+						output.add(new String[] {"Invalid         ", temp});
+				}
+				else
+					output.add(new String[] {"Invalid         ", temp});
+			}
+				
+			else if(isOperatorUpArrow == true) {
+				if(k < charString.length - 1) {
+					char temp1;
+					temp1 = charString[k+1];
+					if(temp1 == ('=')) {
+						if(temp.equals("^")){
+							output.add(new String[] {"Operator        ", temp+temp1});
+							k += 1;
+							continue;
+
+						}
+						else
+							output.add(new String[] {"Invalid         ", temp});
+					}
+					else
+						output.add(new String[] {"Invalid         ", temp});
+				}
+			}
 			//User inputs an operator, token is finished
 			else if(isOperator == true) {
 				//Add the completed token to the output
-				if (!token.equals(""))
+				if (!token.equals("")) {
 					finishedState(token);	
+				}
 				//Check first for double operators such as ==
 				if(charString.length -1 > k) {
 					String temp2 = "";				
