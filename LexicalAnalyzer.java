@@ -6,6 +6,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.swing.JLabel;
+
 public class LexicalAnalyzer {
 	
 	private int lineNumber;
@@ -13,11 +15,10 @@ public class LexicalAnalyzer {
 	private String[] keywords = {"if", "else", "ifend", "while", "whileend", "function", "get", "put", "true", "false", "int", "boolean", "real", "return"};
 	private String line;
 	private String[] Operator = {"==", "=", "^=", ">", "=>", "<", "=<", "*", "/", "+", "-"};
-	private String[] Separator = {"$$", "(", ")", "{", "}", ";", ","};
+	private String[] Separator = {"$$", "(", ")", "{", "}", ";", "," , ":"};
     private String filename;
     private char[] charString;
     private int arraySize;
-    private int keywordSize;
     private ArrayList<String[]> output = new ArrayList<String[]>();
     private int[][] tableFSM = {{0,0,0},{7,5,2}, {2,2,2},{2,6,2},{7,4,2},{2,5,3},{2,6,2},{7,4,2}};
     private int startingState = 1;
@@ -32,14 +33,16 @@ public class LexicalAnalyzer {
 	private int inputDot = 2;
 	private boolean isOperator;
 	private boolean isSeparator;
+	private boolean isOperatorUpArrow;
 	
 	
 	//Constructor
-    public LexicalAnalyzer(String filename) {
-    	this.filename = filename;
+    public LexicalAnalyzer(String input) {
+    	this.filename = input;
     }
     
 	public void start() throws FileNotFoundException, IOException {
+		
 	
 	try (BufferedReader br = new BufferedReader(new FileReader(filename))){
     	BufferedWriter wr = new BufferedWriter(new FileWriter("text2.txt"));
@@ -53,8 +56,6 @@ public class LexicalAnalyzer {
             //arraySize is the the amount of strings that were in the line
             arraySize = splitLine.length;
             
-            //keywordSize is the keywords length
-            keywordSize = keywords.length;
             
             //split the string into their own chars
     		for (int i = 0; i < arraySize; i++){
@@ -83,7 +84,7 @@ public class LexicalAnalyzer {
 	    				break;
     				}
     				//Incase split string is only Separators
-    				else if(splitLine[i].matches("(\\$\\$)|\\(|\\)|\\{|\\}|;|,")){
+    				 else if(splitLine[i].matches("(\\$\\$)|\\(|\\)|\\{|\\}|;|,|:")){
     					currentState = 1;
     					output.add(new String[] {"Separator        ", splitLine[i]});				
     					System.out.println("input: " + splitLine[i] );	
@@ -106,12 +107,14 @@ public class LexicalAnalyzer {
 		String token = "";
 		isSeparator = false;
 		isOperator = false;
+		isOperatorUpArrow = false;
 		//Iterate through potential tokens one character at a time
 		for (int k = 0; k < charString.length; k++){		
 			String temp = "";
 			temp += charString[k];			
 			isSeparator = checkSeparator(temp);
 			isOperator = checkOperator(temp);	
+			isOperatorUpArrow = checkOperatorUpArrow(temp);
 			
 			//Check if character is a letter, adjust state accordingly
 			if (Character.isLetter(charString[k])) {
@@ -121,6 +124,27 @@ public class LexicalAnalyzer {
 			else if(Character.isDigit(charString[k])){			
 				currentState = tableFSM[currentState][inputDigit];			
 			}
+			
+			else if(isOperatorUpArrow == true) {
+				if(k < charString.length - 1) {
+					char temp1;
+					temp1 = charString[k+1];
+					if(temp1 == ('=')) {
+						finishedState(token);
+						output.add(new String[] {"Operator        ", temp+temp1});
+						k += 1;
+					}
+						
+					
+				}
+				//else {
+				//	finishedState(token);
+					//output.add(new String[] {"Operator        ", temp});
+			//	}
+					
+
+			}
+				
 			//User inputs operator, determine completed tokens
 			else if(isOperator == true) {
 				//Add the completed token to the output
@@ -173,7 +197,9 @@ public class LexicalAnalyzer {
 		}
 	
 		//Check if the token being built is a keyword or not
-		for(int i = 0; i < keywordSize; i++) {
+		if (currentState == 4) 
+            output.add(new String[] {"Invalid         ", token});
+		for(int i = 0; i < keywords.length; i++) {
 			if(token.equals(keywords[i])) {
 				currentState = 8;
 				break;
@@ -292,6 +318,14 @@ public class LexicalAnalyzer {
 				
 		}					
 			return isOperator;
+	}
+	
+	private boolean checkOperatorUpArrow(String temp) {
+		boolean isOperatorUpArrow = false;
+		if(temp.equals("^")) 
+			isOperatorUpArrow = true;
+		
+		return isOperatorUpArrow;
 	}
 
 	private boolean checkSeparator(String temp) {
