@@ -198,11 +198,13 @@ public class LexicalAnalyzer {
 
 						}
 						else {
+
 							output.add(new String[] {"Invalid         ", temp});
 							continue;
 						}
 					}
 					else {
+						finishedState(token);
 						output.add(new String[] {"Invalid         ", temp});
 						token = "";
 						continue;
