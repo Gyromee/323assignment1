@@ -18,10 +18,6 @@ public class LexicalAnalyzer {
     private char[] charString;
     private int arraySize;
     private int keywordSize;
-    private int idFail = 0;
-    private boolean idNotEndWithLetter = false; 
-    private boolean idNotDigitOrLetter = false; 
-    private boolean keyWordFound = false;
     private ArrayList<String[]> output = new ArrayList<String[]>();
     private int[][] tableFSM = {{0,0,0},{7,5,2}, {2,2,2},{2,6,2},{7,4,2},{2,5,3},{2,6,2},{7,4,2}};
     private int startingState = 1;
@@ -89,7 +85,7 @@ public class LexicalAnalyzer {
     				//Incase split string is only Separators
     				else if(splitLine[i].matches("(\\$\\$)|\\(|\\)|\\{|\\}|;|,")){
     					currentState = 1;
-    					output.add(new String[] {"Operator        ", splitLine[i]});				
+    					output.add(new String[] {"Separator        ", splitLine[i]});				
     					System.out.println("input: " + splitLine[i] );	
 	    				break;
     				}				
@@ -97,12 +93,15 @@ public class LexicalAnalyzer {
     		}
     	}							
         //Output all tokens found
-        System.out.println("Tokens          Lexeme");
+        //Output all tokens found
+        wr.write("Tokens          Lexeme" + System.lineSeparator());
         for (String[] row : output) {
-	        System.out.println(row[0] + row[1]);
+            wr.write(row[0] + row[1] + System.lineSeparator());
+        }
+        wr.close();
 	    }
     }    
-}
+
 	public void IdAndKeyWordFSM(char[] charString){
 		String token = "";
 		isSeparator = false;
@@ -150,9 +149,17 @@ public class LexicalAnalyzer {
 			//User inputs a separator, determine completed tokens
 			else if(isSeparator == true) {
 				if (currentState == 4) 
-					output.add(new String[] {"Invalid         ", token});				
-				if (!token.equals(""))
-					finishedState(token);					
+					output.add(new String[] {"Invalid         ", token});	
+				//determines if the token before the separator is a keyword
+				if (!token.equals("")) {
+					for(int n = 0; n <keywords.length; n++) {
+						if(token.equals(keywords[n])) {
+							currentState = 8;
+							finishedState(token);
+						}
+					}
+					finishedState(token);
+				}
 				token = "";	
 				output.add(new String[] {"Separator       ", temp});				
 				System.out.println("input: " + temp );					
