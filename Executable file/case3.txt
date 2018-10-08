@@ -1,0 +1,9 @@
+a = 123.4
+b^^=54
+q21w1 == tes%tcase
+
+put (q21w1);
+$$$
+put (b),
+put (a
+return (123 == a.1a1)

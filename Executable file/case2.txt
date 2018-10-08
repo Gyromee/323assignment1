@@ -1,0 +1,16 @@
+int x1x = 0;
+boolean is5 = false;
+
+while (x1x < 10) {
+	if(x<=5) {
+		is5 = true;
+		put (this is 5)
+	} ifend
+	else {
+		is5 = false;
+		(this is not 5)
+	} ifend
+	x1x = x1x+1;
+}
+whileend
+
