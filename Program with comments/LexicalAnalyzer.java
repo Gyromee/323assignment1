@@ -112,6 +112,7 @@ public class LexicalAnalyzer {
 		for (int k = 0; k < charString.length; k++){		
 			String temp = "";
 			temp += charString[k];			
+			//these boolean values check if temp is operator, separator, the "^" symbol and "$" symbol
 			isSeparator = checkSeparator(temp);
 			isOperator = checkOperator(temp);	
 			isOperatorUpArrow = checkOperatorUpArrow(temp);
@@ -126,7 +127,7 @@ public class LexicalAnalyzer {
 				currentState = tableFSM[currentState][inputDigit];			
 			}
 			else if(temp.equals(".")) {
-				//If it encounters a dot, it must be a real
+				//If it encounters a dot, it must be a real and if it encountered a dot followed by an invalid, it will print invalid and move on
 				finishedState(token);
 				currentState = tableFSM[currentState][inputDot];
 				if (currentState == 2) {
@@ -183,7 +184,7 @@ public class LexicalAnalyzer {
 			}
 				
 			else if(isOperatorUpArrow == true) {
-				//check if its the only char in the string
+				//check if its the only char in the string and makes sure if there are more inputs in the array
 				if(k < charString.length - 1) {
 					char temp1;
 					temp1 = charString[k+1];
@@ -197,12 +198,13 @@ public class LexicalAnalyzer {
 
 						}
 						else {
-
+							//if the length is not more than 1, then it must be the only character
 							output.add(new String[] {"Invalid         ", temp});
 							continue;
 						}
 					}
 					else {
+						//if its not the only character in the string and the next symbol is not a "=" then call function
 						finishedState(token);
 						output.add(new String[] {"Invalid         ", temp});
 						token = "";
@@ -290,6 +292,7 @@ public class LexicalAnalyzer {
 		for (int k = 0; k < charString.length; k++){		
 			String temp = "";		
 			temp += charString[k];			
+			//these boolean values check if temp is operator, separator, the "^" symbol and "$" symbol
 			isSeparator = checkSeparator(temp);
 			isOperator = checkOperator(temp);
 			isOperatorUpArrow = checkOperatorUpArrow(temp);
@@ -311,13 +314,14 @@ public class LexicalAnalyzer {
 				if(k < charString.length - 1) {
 					char temp1;
 					temp1 = charString[k+1];
-					
+					//if the dollar sign is the first input and the next input is also a dollar sign
 					if(token.equals("") && temp1 == ('$')) {
 						output.add(new String[] {"Separator       ", temp+temp1});
 						token = "";
 						k +=1;
 						continue;
 					}
+					//if the next input is a dollar sign and this was not the first character read in, finish the state on previous token then proceed
 					if(temp1 == ('$') && !token.equals("")) {
 						finishedState(token);
 						output.add(new String[] {"Separator       ", temp+temp1});
@@ -325,6 +329,7 @@ public class LexicalAnalyzer {
 						k +=1;
 						continue;
 					}
+					//if the token was not the first input and the currentstate is bad, make it invalid
 					else if (!token.equals("")){
 						if (currentState == 3) 
 							output.add(new String[] {"Invalid         ", token});	
@@ -347,12 +352,14 @@ public class LexicalAnalyzer {
 				}
 				
 			}
-				
+				//if it encounters an operator that is "^"
 			else if(isOperatorUpArrow == true) {
+				//if operator was not the first input read in the string
 				if(!token.equals("")) {
 					finishedState(token);
 					temp = "^";
 				}
+				//if there are more inputs after the operator
 				if(k < charString.length - 1) {
 					char temp1;
 					temp1 = charString[k+1];
@@ -426,6 +433,7 @@ public class LexicalAnalyzer {
 	
 	
 	private void finishedState(String token) {
+		//switch case that determines which state is which
 		switch (currentState){
 	    case integer: 
 	    	output.add(new String[] {"Integer         ", token});        

@@ -34,6 +34,7 @@ import javax.swing.*;
 		    		public void actionPerformed(ActionEvent e) {
 		    			String input = jt.getText();
 		    			jl.setText(input);
+						//takes the input text from the gui and uses the name 
 		    			LexicalAnalyzer lexical = new LexicalAnalyzer(input);
 		    		    try {
 							lexical.start();
