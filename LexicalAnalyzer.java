@@ -45,7 +45,7 @@ public class LexicalAnalyzer {
 		
 	
 	try (BufferedReader br = new BufferedReader(new FileReader(filename))){
-    	BufferedWriter wr = new BufferedWriter(new FileWriter("text2.txt"));
+    	BufferedWriter wr = new BufferedWriter(new FileWriter("results.txt"));
     	lineNumber = 1;
         
     	
