@@ -1,0 +1,30 @@
+put (please enter a number from 1-6);
+$$
+
+function choose (num : int) {
+	if (num == 1) {
+		return 1;
+	} ifend
+	elseif (num == 2) {
+		return 2;
+	} ifend
+	if (num == 3) {
+		return 3;
+	} ifend
+	if (num == 4) {
+		return 4;
+	} ifend
+	if (num == 5) {
+		return 5;
+	} ifend
+	if (num == 6) {
+		return 6;
+	} ifend
+	else {
+		put (invalid number);
+	}ifend
+}
+$$
+int num;
+get (num);
+put (choose(num));
