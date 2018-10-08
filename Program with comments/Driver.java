@@ -7,6 +7,7 @@ import java.io.IOException;
 import javax.swing.*;
 
 	public class Driver extends JFrame{
+		//Java GUI to enter textfile name
 		 public Driver() {
 		    	super("Lexical Analyzer Tester");
 		    	setSize(600, 100);
