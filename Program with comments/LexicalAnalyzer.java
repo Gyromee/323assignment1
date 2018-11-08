@@ -35,6 +35,7 @@ public class LexicalAnalyzer {
 	private boolean isSeparator;
 	private boolean isOperatorUpArrow;
 	private boolean isSeparatorDollarSign;
+	private boolean insideOfComment = false;
 	
 	//Constructor
     public LexicalAnalyzer(String input) {
@@ -60,13 +61,58 @@ public class LexicalAnalyzer {
             //split the string into their own chars
     		for (int i = 0; i < arraySize; i++){
     			charString = splitLine[i].toCharArray();
+    			String temp = "";
     			
+    			//Output for testing; outputs the current token being analyzed
+    			//System.out.println("String is: " + splitLine[i]);
+    						
+    			//Check for comments
+    			if (insideOfComment == true && 
+    			   (splitLine[i].matches("^\\*\\].*") || splitLine[i].matches("^[^\\s\\[\\*].*\\*\\].*"))) {
+    				insideOfComment = false;
+    				//If this is the end of a comment, split the token from it and store it with temp.
+    				if (splitLine[i].length() > 2) {
+    					String afterComment[] = splitLine[i].split("\\*]");
+    					charString = afterComment[1].toCharArray();
+    					for (int j = 0; j < charString.length; j++) {
+    						temp += charString[j];
+    					}
+    					splitLine[i] = temp;
+    					temp = "";
+    				}
+    			}
+    			//Check if this is the beginning of a comment or a one line comment
+    			if (splitLine[i].matches("^\\[\\*.*") || splitLine[i].matches("^\\[\\*[a-zA-Z0-9]*\\*\\]$")) {        		    		
+        			while (!splitLine[i].matches(".*\\*\\]$")) {
+        			
+        				if (i < arraySize-1) {
+        					i++;
+        				
+        				}
+        				else if(splitLine[i].matches(".*\\*\\].*")) {
+        					String commentSplit[] = splitLine[i].split("\\*]");
+        					charString = commentSplit[1].toCharArray();
+        					temp += charString[0];
+        					if (temp.matches("[(\\$\\$)|\\(|\\)|\\{|\\}|;|,|:\\=><\\\\*\\\\+\\\\-\\\\/]+")) {
+        						IdAndKeyWordFSM(charString);
+        					}
+        					break;
+        				}
+        				else if((line = br.readLine())!= null) {
+        					splitLine = line.trim().split("\\s+");
+        					i = 0;        					
+        				}
+        			}
+    			}        			
+        			if (splitLine[i].matches(".*\\*\\]$") || (temp += charString[0]) == "")
+        					continue;
+
     			//Check the input for errors first
     			if(checkForError(charString)) {
     				output.add(new String[] {"Invalid         ", splitLine[i]});
     				continue;
     			}
-
+		
     			//Determine which finite state machine to use
     			for (int j = 0; j < charString.length; j++) {
     				//Call FSM for digit input
@@ -83,13 +129,14 @@ public class LexicalAnalyzer {
 	    			}
 
     				//Incase split string is only Separators and/or operators
-    				 else if(splitLine[i].matches("[(\\$\\$)|\\(|\\)|\\{|\\}|;|,|:\\=\\\\^><\\\\*\\\\+\\\\-\\\\/]+")){
+    				 else if(splitLine[i].matches("[(\\$\\$)|\\(|\\)|\\{|\\}|;|,|:\\=><\\\\*\\\\+\\\\-\\\\/\\[\\*]+")){
     					currentState = 1;
     					IdAndKeyWordFSM(charString);
     					//output.add(new String[] {"Separator        ", splitLine[i]});				
 	    				break;
     				}				
     			}
+    			
     		}
     	}							
         
@@ -100,7 +147,8 @@ public class LexicalAnalyzer {
         }
         wr.close();
 	    }
-    }    
+    }
+       
 
 	public void IdAndKeyWordFSM(char[] charString){
 		String token = "";
@@ -111,12 +159,51 @@ public class LexicalAnalyzer {
 		//Iterate through potential tokens one character at a time
 		for (int k = 0; k < charString.length; k++){		
 			String temp = "";
-			temp += charString[k];			
+			temp += charString[k];
 			//these boolean values check if temp is operator, separator, the "^" symbol and "$" symbol
 			isSeparator = checkSeparator(temp);
 			isOperator = checkOperator(temp);	
 			isOperatorUpArrow = checkOperatorUpArrow(temp);
 			isSeparatorDollarSign = checkSeparatorDollarSign(temp);
+
+			//Check for comments
+			if (insideOfComment == true) {
+				token = "";
+				k = charString.length;
+				continue;
+			}
+			//If the next two char are [*, then we can ignore input until we find *]
+			if(charString.length -1 > k) {
+				String temp2 = "";				
+				temp2 += charString[k+1];
+				
+				//Submit any completed tokens before the comment block
+				if (checkComment(temp,temp2)) {
+					if (!token.equals(""))
+						finishedState(token);
+					token = "";					
+					k=k+2;
+					
+					//Look for *]
+					insideOfComment = true;
+					while (charString.length -1 > k){
+						String temp3 = "";
+						temp3 = temp3 + charString[k] + charString[k+1];
+						
+						//When we find *], break and continue analyzing tokens
+						if (temp3.matches(".*\\*\\]$")) {
+							insideOfComment = false;
+							k++;
+							break;
+						}
+						else {
+							insideOfComment = true;
+						}
+						k++;
+					}				
+					continue;
+				}
+			}
 			
 			//Check if character is a letter, adjust state accordingly
 			if (Character.isLetter(charString[k])) {
@@ -230,6 +317,7 @@ public class LexicalAnalyzer {
 				if(charString.length -1 > k) {
 					String temp2 = "";				
 					temp2 += charString[k+1];
+					
 					if (checkOperator(temp+temp2)) {
 						token = "";		
 						output.add(new String[] {"Operator        ", temp+temp2});				
@@ -291,12 +379,51 @@ public class LexicalAnalyzer {
 		//Iterate through potential tokens one character at a time
 		for (int k = 0; k < charString.length; k++){		
 			String temp = "";		
-			temp += charString[k];			
+			temp += charString[k];	
 			//these boolean values check if temp is operator, separator, the "^" symbol and "$" symbol
 			isSeparator = checkSeparator(temp);
 			isOperator = checkOperator(temp);
 			isOperatorUpArrow = checkOperatorUpArrow(temp);
 			isSeparatorDollarSign = checkSeparatorDollarSign(temp);
+			
+			//Check for comments
+			if (insideOfComment == true) {
+				token = "";
+				k++;
+				continue;
+			}
+			//If the next two char are [*, then we can ignore input until we find *]
+			if(charString.length -1 > k) {
+				String temp2 = "";				
+				temp2 += charString[k+1];
+				
+				//Submit any completed tokens before the comment block
+				if (checkComment(temp,temp2)) {
+					if (!token.equals(""))
+						finishedState(token);
+					token = "";					
+					k=k+2;
+					
+					//Look for *]
+					insideOfComment = true;
+					while (charString.length -1 > k){
+						String temp3 = "";
+						temp3 = temp3 + charString[k] + charString[k+1];
+						
+						//When we find *], break and continue analyzing tokens
+						if (temp3.matches(".*\\*\\]$")) {
+							insideOfComment = false;
+							k++;
+							break;
+						}
+						else {
+							insideOfComment = true;
+						}
+						k++;
+					}				
+					continue;
+				}
+			}
 			
 			//User inputs a digit, progress on the table accordingly
 			if(Character.isDigit(charString[k])){			
@@ -425,7 +552,7 @@ public class LexicalAnalyzer {
 		}
 		
 		//Add completed digit token to list of outputs
-		if (isSeparator == false && isOperator == false) {
+		if (isSeparator == false && isOperator == false && !token.equals("")) {
 			finishedState(token);
 		}			
 			
@@ -489,18 +616,37 @@ public class LexicalAnalyzer {
 		}					
 			return isSeparator;
 	}
+	
+	private boolean checkComment(String temp, String temp2) {
+		boolean isComment = false;
+		String temp3 = temp + temp2;
+		if (temp3.equals("[*") || temp3.equals("*]"))
+			isComment = true;
+		
+			return isComment;
+	}
 
 	private boolean checkForError(char[] charString) {
 		boolean hasError = false;
-		String temp;
+		String temp,temp2,temp3 = "";
 		for (int i = 0; i < charString.length; i++) {
 			temp = "";
 			temp += charString[i];
+			if(charString.length -1 > i) {
+				temp2 = "";				
+				temp2 += charString[i+1];
+				temp3 = temp+temp2;
+			
+			}
 			//If input is valid, return false
 			if (Character.isDigit(charString[i]) || Character.isLetter(charString[i]) ||
 								temp.equals(".") || temp.equals("$") 				  ||
 								temp.equals("^") || checkOperator(temp)				  ||
-							checkSeparator(temp) ) {		
+							checkSeparator(temp) ||  temp3.equals("[*") 			  ||
+							 temp3.equals("*]"))  {		
+				if (temp3.equals("*]")) {
+					i++;
+				}
 			}
 			//Any other character input not explicitly stated, return true
 			else
