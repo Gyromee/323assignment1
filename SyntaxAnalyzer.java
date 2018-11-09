@@ -99,4 +99,416 @@ public class SyntaxAnalyzer {
 //
 //	}
 	
+	
+	public void Rat18F()
+	{
+		Opt_Function_Definitions();
+		
+		
+		
+	}
+	
+
+	public void Opt_Function_Definitions()
+	{
+		Function_Definitions();
+		//or Empty();
+	}
+	
+	public void Function_Definitions()
+	{
+		Function();
+		Function_Definition_Prime();
+	
+	}
+	
+	public void Function_Definition_Prime()
+	{
+		Function();
+		Function_Definition_Prime();
+		//or Empty();
+	}
+	
+	public void Function()
+	{
+		//lex()
+		//if(token != "function")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+		
+		//lex()
+		//if(token != "identifier")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+		
+		//lex()
+		//if(token != "(")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+		
+		Opt_Parameter_List();
+		
+		//lex()
+		//if(token != ")")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+		
+		Opt_Declaration_List();
+		Body();
+		
+	}
+	
+	public void Opt_Parameter_List() {
+		Parameter_List();
+		//or Empty();
+	}
+	
+	public void Parameter_List() {
+		Parameter();
+		//lex()
+		//if(token != ",")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+		Parameter_List_Prime();
+		
+	}
+
+	public void Parameter_List_Prime() {
+		Parameter();
+		//lex()
+		//if(token != ",")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+		Parameter_List_Prime();
+		//or Empty();
+	}
+	
+	public void Parameter() {
+		IDs();
+		//lex()
+		//if(token != ":")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+		Qualifier();
+
+	}
+	
+	public void Qualifier() {
+		//if(token != "int" | "bolean" | "real")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+	}
+	
+	public void Body() {
+		//if(token != "{")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+		Statement_List();
+		//if(token != "}")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+	}
+	
+	public void Opt_Declaration_List() {
+		Declaration_List();
+		//or Empty();
+	}
+	
+	public void Declaration_List() {
+		Declaration();
+		//if(token != "}")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+		Declaration_List_Prime();
+	}
+	
+	public void Declaration_List_Prime() {
+		Declaration();
+		//if(token != "}")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+		Declaration_List_Prime();
+		//or Empty();
+	}
+	
+	public void Declaration()
+	{
+		Qualifier();
+		IDs();
+	}
+	
+	public void IDs()
+	{
+		//if(token != "Identifier")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+		IDs_Prime();
+	}
+	
+	public void IDs_Prime()
+	{
+		//if(token != "Identifier")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+		IDs_Prime();
+		//or Empty();
+		
+	}
+	
+	public void Statement_List()
+	{
+		Statement();
+		Statement_List_Prime();
+		
+	}
+	
+	public void Statement_List_Prime()
+	{
+		Statement();
+		Statement_List_Prime();
+		//or Empty();
+	}
+
+	public void Statement()
+	{
+		// if (Compound()  |  Assign()  |   If()  |  Return()   | Print()   |   Scan()   |  While())
+		// else {
+		// error
+		//exit;
+		//}
+	}
+	
+	public void Compound()
+	{
+		//if( != "{")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+		Statement_List();
+		//if(token != "}")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+	}
+	
+	public void Assign()
+	{
+		//if(token != "Idntifier")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+		//if(token != "=")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+		Expression();
+		//if(token != ";")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+	}
+	
+	public void If()
+	{
+		//if(token != "if")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+		//if(token != "(")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+		Condition();
+		//if(token != ")")
+		//{
+		//	system.out("syntax error");
+		//	exit
+		//}
+		Statement();
+		If_Prime();
+	}
+	
+	public void If_Prime()
+	{
+		//lex();
+		//if(token == "ifend")
+		//{
+		//	return;
+		//}
+		//if(token == "else") {
+			Statement();
+			//if(token == "ifend")
+			//{
+			//	return;
+			//}
+		//}
+		//else {
+		//	exit;
+		//}
+		
+	}
+	
+	public void Return()
+	{
+		//if(token != "return")
+		//{
+		//	system.out("syntax error");
+		//	exit;
+		//}
+		Return_Prime();
+	}
+	
+	public void Return_Prime()
+	{
+		//if(token == ";")
+		//{
+		// return;
+		//}
+		//OR
+		Expression();
+		//if(token == ";")
+		//{
+		// return;
+		//}
+		//else {
+		//exit
+		//}
+	}
+	
+	public void Condition()
+	{
+		Expression();
+		Relop();
+		Expression();
+	}
+	
+    private void Relop() {
+        if(token=="==") {
+            return "==;
+        }
+        else if(token=="^=") {
+            return "^=;
+        }
+        else if(token==">") {
+            return ">;
+        }
+        else if(token=="<") {
+            return "<;
+        }
+        else if(token=="=>") {
+            return "=>;
+        }
+        else if(token=="=<") {
+            return "=<;
+        }
+    }
+    
+    //31
+    private void Expression() {
+        Term();
+        Expression_Prime();
+    }
+    
+    //32
+    private void Expression_Prime() {
+        if(token=="+") {
+            Term();
+            Expression_Prime();
+        }
+        else if(token=="-") {
+            Term();
+            Expression_Prime();
+        }
+        else
+            Empty();        
+    }
+    
+    //33
+    private void Term() {    
+        Factor();
+        TermPrime();        
+    }
+    
+    //34
+    private void Term_Prime() {
+        if(token == "*") {
+            Factor();
+            TermPrime();
+        }
+        else if(token == "/") {
+            Factor();
+            TermPrime();
+        }
+        else 
+            Empty();    
+    }
+    
+    //35
+    private Factor() {
+        if(token == "-") {
+            Primary();
+        }
+        else
+            Primary();
+    }
+    //36
+    private Primary() {
+        if(token=="Identifier" || token=="")
+    }
+    
+    //37
+    private Identifier_Prime() {
+        
+        if(token != "(") {
+            Empty();
+        }
+        IDs();
+        if(token != ")") {
+            //error();
+        }
+        
+    }
+    
+    //38
+    private void Empty() {
+        //return epsilon
+    }
+	
+
+	
 }
