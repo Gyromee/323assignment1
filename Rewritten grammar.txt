@@ -67,6 +67,7 @@ R32. <Expression Prime>  ::= + <Term> <Expression Prime>  |   - <Term> <Expressi
 R33. <Term>  ::= <Factor> <Term Prime>
 R34. <Term Prime>  ::= * <Factor> <Term Prime>  |   / <Factor> <Term Prime>  | <Empty>
 R35. <Factor> ::=      -  <Primary>    |    <Primary>
-R36. <Primary> ::=     <Identifier>  |  <Integer>  |   <Identifier>  ( <IDs> )   |   ( <Expression> )   |
+R36. <Primary> ::=     <Identifier> <Identifier Prime>  |  <Integer>  |   ( <Expression> )   |
  <Real>  |   true   |  false
-R37. <Empty>   ::= ε
+R37. <Identifier Prime> ::= ( <IDs> ) | <Empty>
+R38. <Empty>   ::= ε
