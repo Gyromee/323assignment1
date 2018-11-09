@@ -56,18 +56,19 @@ R21. <Compound> ::=   {  <Statement List>  }
 R22. <Assign> ::=     <Identifier> = <Expression> ;
 R23. <If> ::= if (<Condition>) <Statement> <If Prime>
 R24. <If Prime> ::= ifend |	else  <Statement>  ifend
-R25. <Return> ::=  return ; |  return <Expression> ;
-R26. <Print> ::=    put ( <Expression>);
-R27. <Scan> ::=    get ( <IDs> );
-R28. <While> ::=  while ( <Condition>  )  <Statement>  whileend
-R29. <Condition> ::=     <Expression>  <Relop>   <Expression>
-R30. <Relop> ::=        ==   |   ^=    |   >     |   <    |   =>    |   =<
-R31. <Expression>  ::=    <Term> <Expression Prime>
-R32. <Expression Prime>  ::= + <Term> <Expression Prime>  |   - <Term> <Expression Prime>  | <Empty>
-R33. <Term>  ::= <Factor> <Term Prime>
-R34. <Term Prime>  ::= * <Factor> <Term Prime>  |   / <Factor> <Term Prime>  | <Empty>
-R35. <Factor> ::=      -  <Primary>    |    <Primary>
-R36. <Primary> ::=     <Identifier> <Identifier Prime>  |  <Integer>  |   ( <Expression> )   |
+R25. <Return> ::=  return <Return Prime>
+R26. <Return Prime> ::= ; |  <Expression>;
+R27. <Print> ::=    put ( <Expression>);
+R28. <Scan> ::=    get ( <IDs> );
+R29. <While> ::=  while ( <Condition>  )  <Statement>  whileend
+R30. <Condition> ::=     <Expression>  <Relop>   <Expression>
+R31. <Relop> ::=        ==   |   ^=    |   >     |   <    |   =>    |   =<
+R32. <Expression>  ::=    <Term> <Expression Prime>
+R33. <Expression Prime>  ::= + <Term> <Expression Prime>  |   - <Term> <Expression Prime>  | <Empty>
+R34. <Term>  ::= <Factor> <Term Prime>
+R35. <Term Prime>  ::= * <Factor> <Term Prime>  |   / <Factor> <Term Prime>  | <Empty>
+R36. <Factor> ::=      -  <Primary>    |    <Primary>
+R37. <Primary> ::=     <Identifier> <Identifier Prime>  |  <Integer>  |   ( <Expression> )   |
  <Real>  |   true   |  false
-R37. <Identifier Prime> ::= ( <IDs> ) | <Empty>
-R38. <Empty>   ::= ε
+R38. <Identifier Prime> ::= ( <IDs> ) | <Empty>
+R39. <Empty>   ::= ε
