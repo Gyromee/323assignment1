@@ -63,7 +63,7 @@ R28. <While> ::=  while ( <Condition>  )  <Statement>  whileend
 R29. <Condition> ::=     <Expression>  <Relop>   <Expression>
 R30. <Relop> ::=        ==   |   ^=    |   >     |   <    |   =>    |   =<
 R31. <Expression>  ::=    <Term> <Expression Prime>
-R32. <Expression Prime>  ::= + <Term> <Expression Prime>  |   - <Term> <Expression Prime>  | <Empty>
+R32. <Expression Prime>  ::= + <Term> <Expression Prime>  |   / <Term> <Expression Prime>  | <Empty>
 R33. <Term>  ::= <Factor> <Term Prime>
 R34. <Term Prime>  ::= * <Factor> <Term Prime>  |   - <Factor> <Term Prime>  | <Empty>
 R35. <Factor> ::=      -  <Primary>    |    <Primary>
