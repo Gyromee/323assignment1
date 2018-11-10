@@ -63,7 +63,6 @@ public class LexicalAnalyzer {
             
             //split the string into their own chars
     		for (int i = 0; i < arraySize; i++){
-    			System.out.println(i);
     			charString = splitLine[i].toCharArray();
     			String temp = "";    			
     			//Output for testing; outputs the current token being analyzed
