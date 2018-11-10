@@ -65,8 +65,7 @@ public class LexicalAnalyzer {
     		for (int i = 0; i < arraySize; i++){
     			System.out.println(i);
     			charString = splitLine[i].toCharArray();
-    			String temp = "";
-    			System.out.println("i am at " + splitLine[i] + "     " + insideOfComment);
+    			String temp = "";    			
     			//Output for testing; outputs the current token being analyzed
     			//System.out.println("String is: " + splitLine[i]);
     			
