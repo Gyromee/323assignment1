@@ -12,6 +12,7 @@ public class SyntaxAnalyzer {
 	private String line;
 	private String[] splitLine = null;
 	private char[] charString;
+	private String lineNumber = "";
 	private int lineNumber = 0;
 	private int invalidLineNumber = 1;
 	private LexicalAnalyzer lexical;
@@ -40,7 +41,7 @@ public void start() throws FileNotFoundException, IOException {
 	    			System.out.println("Detected an Invalid Token on line " + lexical.getLineNumber() + " for " + splitLine[1]);
 	    			System.exit(0);
 	    		}
-	    		invalidLineNumber++;
+	    		
 	    	 }
 
 	    	 //prints out the arraylist
@@ -55,10 +56,11 @@ public void start() throws FileNotFoundException, IOException {
 	    String temp[] = tokensAndLexeme.get(x);
 	    token = temp[0];
 	    lexeme = temp[1];
+	    lineNumber = temp[2];
 	    x++;
 	}
 	
-//	public void Rat18F(String token, String lexeme)
+//	public void Rat18F(String token, String lexeme, String lineNumber)
 //	{
 //		Opt_Function_Definitions();
 //		if (!lexeme.equals("$$"){
