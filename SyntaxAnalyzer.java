@@ -100,19 +100,25 @@ public class SyntaxAnalyzer {
 //	}
 	
 	
-	public void Rat18F()
+	private void Rat18F()
 	{
 		Opt_Function_Definitions();
-		
-		
-		
+		if (Lexeme != "$$") {
+		System.out.println("Syntax error: expecting $$ or function");
+		System.exit(0);
+		}
+		Opt_Declaration_List();
+		Statement_List();
+		//if (token != "$$") {
+		// System.out.println("syntax error")
+		//}
 	}
 	
 
-	public void Opt_Function_Definitions()
+	private void Opt_Function_Definitions()
 	{
 		Function_Definitions();
-		//or Empty();
+		Empty();
 	}
 	
 	public void Function_Definitions()
@@ -124,33 +130,33 @@ public class SyntaxAnalyzer {
 	
 	public void Function_Definition_Prime()
 	{
+		//if(isEmpty == false)
 		Function();
 		Function_Definition_Prime();
-		//or Empty();
+		//else Empty();
 	}
 	
 	public void Function()
 	{
-		//lex()
-		//if(token != "function")
-		//{
-		//	system.out("syntax error");
-		//	exit
-		//}
+		lex()
+		if(!Lexeme.equals ("function"))
+		{
+			isEmpty = true;
+			return;
+		}
+		lex()
+		if(!Token.equals ("Identifier"))
+		{
+			system.out("syntax error");
+			exit
+		}
 		
-		//lex()
-		//if(token != "identifier")
-		//{
-		//	system.out("syntax error");
-		//	exit
-		//}
-		
-		//lex()
-		//if(token != "(")
-		//{
-		//	system.out("syntax error");
-		//	exit
-		//}
+		lex()
+		if(token != "(")
+		{
+			system.out("syntax error");
+			exit
+		}
 		
 		Opt_Parameter_List();
 		
@@ -185,6 +191,10 @@ public class SyntaxAnalyzer {
 
 	public void Parameter_List_Prime() {
 		Parameter();
+		if(isEmpty == true) {
+			System.out.println("Syntax error: expecting an identifier");
+			System.exit(0);
+		}
 		//lex()
 		//if(token != ",")
 		//{
@@ -197,6 +207,10 @@ public class SyntaxAnalyzer {
 	
 	public void Parameter() {
 		IDs();
+		if(isEmpty == true) {
+			Empty();
+			return;
+		}
 		//lex()
 		//if(token != ":")
 		//{
@@ -208,7 +222,7 @@ public class SyntaxAnalyzer {
 	}
 	
 	public void Qualifier() {
-		//if(token != "int" | "bolean" | "real")
+		if(!Lexeme.equals ( "int") || "bolean" || "real"))
 		//{
 		//	system.out("syntax error");
 		//	exit
@@ -259,27 +273,35 @@ public class SyntaxAnalyzer {
 	{
 		Qualifier();
 		IDs();
+		if(isEmpty == true) {
+			System.out.println("Syntax error: expecting an identifier");
+			System.exit(0);
+		}
 	}
 	
 	public void IDs()
 	{
-		//if(token != "Identifier")
-		//{
-		//	system.out("syntax error");
-		//	exit
-		//}
+		if(!Token.equals ("Identifier"))
+		{
+			isEmpty = true;
+			return;
+		}
 		IDs_Prime();
 	}
 	
 	public void IDs_Prime()
 	{
-		//if(token != "Identifier")
-		//{
-		//	system.out("syntax error");
-		//	exit
-		//}
+		
+		if(!Lexeme.equals( ","))
+		{
+			Empty();
+		}
+		if(!Token.equals( "Identifier"))
+		{
+			System.out.println("Syntax error: expecting an identifier");
+			System.exit(0);
+		}
 		IDs_Prime();
-		//or Empty();
 		
 	}
 	
@@ -492,7 +514,7 @@ public class SyntaxAnalyzer {
     }
     
     //37
-    private Identifier_Prime() {
+    private void Identifier_Prime() {
         
         if(token != "(") {
             Empty();
@@ -507,6 +529,8 @@ public class SyntaxAnalyzer {
     //38
     private void Empty() {
         //return epsilon
+    	isEmpty = false;
+    	return;
     }
 	
 
