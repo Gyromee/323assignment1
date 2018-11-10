@@ -36,7 +36,7 @@ public class LexicalAnalyzer {
 	private boolean isOperatorUpArrow;
 	private boolean isSeparatorDollarSign;
 	private int lineNumberInvalid = 0;
-	
+	private String lineNumberString = "";
 	//Constructor
     public LexicalAnalyzer(String input) {
     	this.filename = input;
@@ -51,6 +51,7 @@ public class LexicalAnalyzer {
     	//Read in a line one by one
         while((line = br.readLine())!= null) {
         	lineNumber++;
+        	lineNumberString += lineNumber;
         	//Trim whitespaces from line and store in string array
             splitLine = line.trim().split("\\s+");
             
@@ -64,7 +65,7 @@ public class LexicalAnalyzer {
 
     			//Check the input for errors first
     				if(checkForError(charString)) {
-    				output.add(new String[] {"Invalid         ", splitLine[i]});
+    				output.add(new String[] {"Invalid         ", splitLine[i], lineNumberString});
     				setLineNumber(lineNumber);	
     				continue;
     			}
@@ -89,7 +90,7 @@ public class LexicalAnalyzer {
     				 else if(splitLine[i].matches("[(\\$\\$)|\\(|\\)|\\{|\\}|;|,|:\\=\\\\^><\\\\*\\\\+\\\\-\\\\/]+")){
     					currentState = 1;
     					IdAndKeyWordFSM(charString);
-    					//output.add(new String[] {"Separator        ", splitLine[i]});				
+    					//output.add(new String[] {"Separator        ", splitLine[i], lineNumberString});				
 	    				break;
     				}		
     			}
@@ -138,7 +139,7 @@ public class LexicalAnalyzer {
 				finishedState(token);
 				currentState = tableFSM[currentState][inputDot];
 				if (currentState == 2) {
-					output.add(new String[] {"Invalid         ", temp});
+					output.add(new String[] {"Invalid         ", temp, lineNumberString});
 					setLineNumber(lineNumber);	
 					token = "";
 					currentState = 1;
@@ -154,7 +155,7 @@ public class LexicalAnalyzer {
 					temp1 = charString[k+1];
 					//if the token starts with $
 					if(token.equals("") && temp1 == ('$')) {
-						output.add(new String[] {"Separator       ", temp+temp1});
+						output.add(new String[] {"Separator       ", temp+temp1, lineNumberString});
 						token = "";
 						k +=1;
 						continue;
@@ -162,7 +163,7 @@ public class LexicalAnalyzer {
 					//if the token did not start with $
 					if(temp1 == ('$') && !token.equals("")) {
 						finishedState(token);
-						output.add(new String[] {"Separator       ", temp+temp1});
+						output.add(new String[] {"Separator       ", temp+temp1, lineNumberString});
 						token = "";
 						k +=1;
 						continue;
@@ -171,14 +172,14 @@ public class LexicalAnalyzer {
 					else if (!token.equals("")){
 						finishedState(token);
 						token = "";
-						output.add(new String[] {"Invalid         ", temp});
+						output.add(new String[] {"Invalid         ", temp, lineNumberString});
 						setLineNumber(lineNumber);	
 						token = "";
 						continue;
 					}
 					//if this is string is only a $
 					else {
-						output.add(new String[] {"Invalid         ", temp});
+						output.add(new String[] {"Invalid         ", temp, lineNumberString});
 						setLineNumber(lineNumber);	
 						token = "";
 						continue;
@@ -186,7 +187,7 @@ public class LexicalAnalyzer {
 					}
 				}
 				else {
-					output.add(new String[] {"Invalid         ", temp});
+					output.add(new String[] {"Invalid         ", temp, lineNumberString});
 					setLineNumber(lineNumber);	
 					token = "";
 					continue;
@@ -202,7 +203,7 @@ public class LexicalAnalyzer {
 					if(temp1 == ('=')) {
 						if(temp.equals("^")){
 							finishedState(token);
-							output.add(new String[] {"Operator        ", temp+temp1});
+							output.add(new String[] {"Operator        ", temp+temp1, lineNumberString});
 							k += 1;
 							token = "";
 							continue;
@@ -210,7 +211,7 @@ public class LexicalAnalyzer {
 						}
 						else {
 							//if the length is not more than 1, then it must be the only character
-							output.add(new String[] {"Invalid         ", temp});
+							output.add(new String[] {"Invalid         ", temp, lineNumberString});
 							setLineNumber(lineNumber);	
 							continue;
 						}
@@ -218,7 +219,7 @@ public class LexicalAnalyzer {
 					else {
 						//if its not the only character in the string and the next symbol is not a "=" then call function
 						finishedState(token);
-						output.add(new String[] {"Invalid         ", temp});
+						output.add(new String[] {"Invalid         ", temp, lineNumberString});
 						setLineNumber(lineNumber);	
 						token = "";
 						continue;
@@ -226,7 +227,7 @@ public class LexicalAnalyzer {
 					
 				}
 				else {
-					output.add(new String[] {"Invalid         ", temp});
+					output.add(new String[] {"Invalid         ", temp, lineNumberString});
 					setLineNumber(lineNumber);	
 					token = "";
 					continue;
@@ -247,25 +248,25 @@ public class LexicalAnalyzer {
 					if (checkOperator(temp+temp2)) {
 						
 						token = "";		
-						output.add(new String[] {"Operator        ", temp+temp2});				
+						output.add(new String[] {"Operator        ", temp+temp2, lineNumberString});				
 						k++;
 						continue;
 					}
 				}
 				//
 				if (currentState == 4) {
-					output.add(new String[] {"Invalid         ", token});	
+					output.add(new String[] {"Invalid         ", token, lineNumberString});	
 					setLineNumber(lineNumber);	
 				}
 				token = "";		
-				output.add(new String[] {"Operator        ", temp});									
+				output.add(new String[] {"Operator        ", temp, lineNumberString});									
 				continue;			
 			}
 			//User inputs a separator, determine completed tokens
 			else if(isSeparator == true) {
 				if (currentState == 4) {
 					setLineNumber(lineNumber);	
-					output.add(new String[] {"Invalid         ", token});	
+					output.add(new String[] {"Invalid         ", token, lineNumberString});	
 				}
 				//determines if the token before the separator is a keyword
 				if (!token.equals("")) {
@@ -278,7 +279,7 @@ public class LexicalAnalyzer {
 					finishedState(token);
 				}
 				token = "";	
-				output.add(new String[] {"Separator       ", temp});								
+				output.add(new String[] {"Separator       ", temp, lineNumberString});								
 				continue;			
 			}
 			//Keep adding to token until it is complete
@@ -288,7 +289,7 @@ public class LexicalAnalyzer {
 	
 		//Check if the token being built is a keyword or not
 		if (currentState == 4) {
-            output.add(new String[] {"Invalid         ", token});
+            output.add(new String[] {"Invalid         ", token, lineNumberString});
             setLineNumber(lineNumber);	   
 		}
 		for(int i = 0; i < keywords.length; i++) {
@@ -336,7 +337,7 @@ public class LexicalAnalyzer {
 					temp1 = charString[k+1];
 					//if the dollar sign is the first input and the next input is also a dollar sign
 					if(token.equals("") && temp1 == ('$')) {
-						output.add(new String[] {"Separator       ", temp+temp1});
+						output.add(new String[] {"Separator       ", temp+temp1, lineNumberString});
 						token = "";
 						k +=1;
 						continue;
@@ -344,7 +345,7 @@ public class LexicalAnalyzer {
 					//if the next input is a dollar sign and this was not the first character read in, finish the state on previous token then proceed
 					if(temp1 == ('$') && !token.equals("")) {
 						finishedState(token);
-						output.add(new String[] {"Separator       ", temp+temp1});
+						output.add(new String[] {"Separator       ", temp+temp1, lineNumberString});
 						token = "";
 						k +=1;
 						continue;
@@ -352,25 +353,25 @@ public class LexicalAnalyzer {
 					//if the token was not the first input and the currentstate is bad, make it invalid
 					else if (!token.equals("")){
 						if (currentState == 3) {
-							output.add(new String[] {"Invalid         ", token});	
+							output.add(new String[] {"Invalid         ", token, lineNumberString});	
 							setLineNumber(lineNumber);		
 						}
 						finishedState(token);
 						token = "";
-						output.add(new String[] {"Invalid         ", temp});
+						output.add(new String[] {"Invalid         ", temp, lineNumberString});
 						setLineNumber(lineNumber);	
 						continue;
 					}
 					else {
 						
-						output.add(new String[] {"Invalid         ", temp});
+						output.add(new String[] {"Invalid         ", temp, lineNumberString});
 						setLineNumber(lineNumber);	
 						token = "";
 						continue;
 					}
 				}
 				else {
-					output.add(new String[] {"Invalid         ", temp});
+					output.add(new String[] {"Invalid         ", temp, lineNumberString});
 					setLineNumber(lineNumber);	
 					token = "";
 					continue;
@@ -390,20 +391,20 @@ public class LexicalAnalyzer {
 					temp1 = charString[k+1];
 					if(temp1 == ('=')) {
 						if(temp.equals("^")){
-							output.add(new String[] {"Operator        ", temp+temp1});
+							output.add(new String[] {"Operator        ", temp+temp1, lineNumberString});
 							k += 1;
 							token = "";
 							continue;
 
 						}
 						else {
-							output.add(new String[] {"Invalid         ", temp});
+							output.add(new String[] {"Invalid         ", temp, lineNumberString});
 							setLineNumber(lineNumber);	
 							continue;
 						}
 					}
 					else {
-						output.add(new String[] {"Invalid         ", temp});
+						output.add(new String[] {"Invalid         ", temp, lineNumberString});
 						setLineNumber(lineNumber);	
 						token = "";
 						continue;
@@ -423,31 +424,31 @@ public class LexicalAnalyzer {
 					temp2 += charString[k+1];
 					if (checkOperator(temp+temp2)) {
 						token = "";		
-						output.add(new String[] {"Operator        ", temp+temp2});				
+						output.add(new String[] {"Operator        ", temp+temp2, lineNumberString});				
 						k++;
 						continue;
 					}
 				}
 				//Check for invalid inputs
 				if (currentState == 3) {
-					output.add(new String[] {"Invalid         ", token});	
+					output.add(new String[] {"Invalid         ", token, lineNumberString});	
 					setLineNumber(lineNumber);	
 				}
 				//Add single operators to list of outputs
 				token = "";
-				output.add(new String[] {"Operator        ", temp});				
+				output.add(new String[] {"Operator        ", temp, lineNumberString});				
 				continue;
 			}
 			//User inputs a separator, token is finished
 			else if(isSeparator == true) {
 				if (currentState == 3) {
-					output.add(new String[] {"Invalid         ", token});
+					output.add(new String[] {"Invalid         ", token, lineNumberString});
 					setLineNumber(lineNumber);	
 				}
 				if (!token.equals(""))
 					finishedState(token);					
 				token = "";	
-				output.add(new String[] {"Separator       ", temp});								
+				output.add(new String[] {"Separator       ", temp, lineNumberString });								
 				continue;										
 			}
 			
@@ -464,22 +465,24 @@ public class LexicalAnalyzer {
 	
 	
 	private void finishedState(String token) {
+		String temp = "";
+		temp += lineNumber;
 		//switch case that determines which state is which
 		switch (currentState){
 	    case integer: 
-	    	output.add(new String[] {"Integer         ", token});        
+	    	output.add(new String[] {"Integer         ", token, temp, lineNumberString});        
 	        break;
 	    case real: 
-	    	output.add(new String[] {"Real            ", token});
+	    	output.add(new String[] {"Real            ", token, temp, lineNumberString});
 	        break;
 	    case identifier:
-	    	output.add(new String[] {"Identifier      ", token});
+	    	output.add(new String[] {"Identifier      ", token, temp, lineNumberString});
 	        break;
 		case keyword:
-	    	output.add(new String[] {"Keyword         ", token});
+	    	output.add(new String[] {"Keyword         ", token, temp, lineNumberString});
 	    	break;
 	    case invalid:
-	    	output.add(new String[] {"Invalid         ", token});
+	    	output.add(new String[] {"Invalid         ", token, temp, lineNumberString});
 	    	setLineNumber(lineNumber);	
 	    	break;
 	    default:
