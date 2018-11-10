@@ -41,7 +41,7 @@ public void start() throws FileNotFoundException, IOException {
 	    			System.out.println("Detected an Invalid Token on line " + lexical.getLineNumber() + " for " + splitLine[1]);
 	    			System.exit(0);
 	    		}
-	    		invalidLineNumber++;
+	    		
 	    	 }
 
 	    	 //prints out the arraylist
