@@ -8,25 +8,28 @@ import java.util.ArrayList;
 
 public class SyntaxAnalyzer {
 
-	private String firstFile;
-	private String secondFile;
+	private String filename;
 	private String line;
-	private String tokenLine;
 	private String[] splitLine = null;
-	private String[] splitTokenLine = null;
-	private ArrayList<String[]> lastTokenInLine = new ArrayList<String[]>();
 	private char[] charString;
 	private int lineNumber = 0;
 	private int invalidLineNumber = 1;
-	
-	public SyntaxAnalyzer(String firstFile, String secondFile){
-		this.firstFile = firstFile;
-		this.secondFile = secondFile;
+	private LexicalAnalyzer lexical;
+	private String lexeme = "";
+    private String token = "";
+    private int x = 0;
+	private boolean isEmpty = false;
+	private ArrayList<String[]> tokensAndLexeme= new ArrayList<String[]>();
+	public SyntaxAnalyzer(String filename, LexicalAnalyzer lexical){
+		this.filename=filename;
+		this.lexical = lexical;
+		this.tokensAndLexeme = lexical.getOutput();
+		
 	}
 	
-	public void start() throws FileNotFoundException, IOException {
+public void start() throws FileNotFoundException, IOException {
 		
-		try (BufferedReader br = new BufferedReader(new FileReader(secondFile))){
+		try (BufferedReader br = new BufferedReader(new FileReader(filename))){
 	    	BufferedWriter wr = new BufferedWriter(new FileWriter("syntaxResult.txt"));
 	    	
 	    	//Checks if there are any invalid tokens in our text file
@@ -34,88 +37,45 @@ public class SyntaxAnalyzer {
 	 	    	splitLine = line.trim().split("\\s+");
 	    		if(splitLine[0].matches("Invalid")) {
 	    
-	    			System.out.println("Detected an Invalid Token on line " + invalidLineNumber + " for " + splitLine[1]);
+	    			System.out.println("Detected an Invalid Token on line " + lexical.getLineNumber() + " for " + splitLine[1]);
 	    			System.exit(0);
 	    		}
 	    		invalidLineNumber++;
 	    	 }
-	    	 //File with lexemes and tokens
-	    	 BufferedReader tokenFile = new BufferedReader(new FileReader(secondFile));	
-	    	 //File with the original file without token and lexemes separated
-	    	 BufferedReader oldFile = new BufferedReader(new FileReader(firstFile));
-	    	 //splitTokenLine contains the array that has both token and lexeme stored in the current line
-	    	 if(tokenFile.readLine() != null)
-	    		 //This skips the first line of the token file that says "Token      Lexeme"
-	    		 tokenLine = tokenFile.readLine();
-	    	 //while the original file is not the end of the text
-	    	 while((line = oldFile.readLine())!= null) {
-	         	//Trim whitespaces from Original Text File, line and store in string array
-	    		 splitLine = line.trim().split("\\s+");
-	    		 //trim whitespaces for token file
-	    		 if(tokenFile.readLine() != null) {
-	    			 splitTokenLine = tokenLine.trim().split("\\s+");
-	    			 }
-	    		 
-	    		 //For loop to have all the lexemes into an array list. 
-	    		 for(int i = 0; i < splitLine.length; i++) {
-	    			 //Checks if the the token equals the last character in our orignal text string
-	    			 if(splitTokenLine[1].equals(splitLine[splitLine.length - 1])) {
-	    				 break;
-	    			 }
-	    			 //else keep adding all the tokens into an array list
-	    			 else
-	    				 lastTokenInLine.add(new String[] {splitTokenLine[1]});
-	    			 
-	    			 
-	    			 if(tokenFile.readLine() != null) {
-	    				//Read in the next line and store it into splitTokenLine
-	    	    		 splitTokenLine = tokenLine.trim().split("\\s+");
-	    	    		 System.out.println("Token" + splitTokenLine[0] + " Lexeme " + splitTokenLine[1] );
-	    			 }
 
-	    		 }
-	    		 
-//	    		 for (String[] row : lastTokenInLine) {
-//	    	            System.out.println(row[0]);
-//	    	        }
-
-	      
+	    	 //prints out the arraylist
+	    	 for (int i=0; i<tokensAndLexeme.size(); i++) {
+	    		 String temp[] = tokensAndLexeme.get(i);
+	             System.out.println(temp[0] +" "+ temp[1]);
 	    	 }
+	    	 
+	    	 Rat18F(tokensAndLexeme);
 	    	
 		}
 		
 	}
 
+	private void lex() {
+	    String temp[] = tokensAndLexeme.get(x);
+	    token = temp[0];
+	    lexeme = temp[1];
+	    x++;
+	}
 	
-//	public void functionStatement(String token, String lexeme)
-//	{
-//		if(token.equals("Identifier")) {
-//			if(line=rr.readLine() != null) {
-//				System.out.println("<Statement> -> <Assign>");
-//				System.out.println("<Assign> -> <Identifier> = <Expression>");
-//			}
-//			
-//		}
-//
-//	}
-	
-	
-	private void Rat18F()
+	public void Rat18F(ArrayList<String[]> output)
 	{
 		Opt_Function_Definitions();
-		if (Lexeme != "$$") {
-		System.out.println("Syntax error: expecting $$ or function");
-		System.exit(0);
+		if (!lexeme.equals("$$"){
+			System.out.println("Error on line _______ expecting a $$")
+			System.exit(0)
 		}
 		Opt_Declaration_List();
-		Statement_List();
-		//if (token != "$$") {
-		// System.out.println("syntax error")
-		//}
+
+		
 	}
 	
 
-	private void Opt_Function_Definitions()
+	public void Opt_Function_Definitions()
 	{
 		Function_Definitions();
 		Empty();
@@ -130,42 +90,45 @@ public class SyntaxAnalyzer {
 	
 	public void Function_Definition_Prime()
 	{
-		//if(isEmpty == false)
-		Function();
-		Function_Definition_Prime();
-		//else Empty();
+		if(isEmpty == false) {
+			Function();
+			Function_Definition_Prime();
+		}
+		else 
+			Empty();
 	}
 	
 	public void Function()
 	{
-		lex()
-		if(!Lexeme.equals ("function"))
+		lex();  Call the next element and token of the array
+		if(!lexeme.equals("function"))
 		{
 			isEmpty = true;
 			return;
 		}
+		
 		lex()
-		if(!Token.equals ("Identifier"))
+		if(!token.equals("identifier"))
 		{
 			system.out("syntax error");
-			exit
+			System.exit(0);
 		}
 		
 		lex()
 		if(token != "(")
 		{
 			system.out("syntax error");
-			exit
+			System.exit(0);
 		}
 		
 		Opt_Parameter_List();
 		
-		//lex()
-		//if(token != ")")
-		//{
-		//	system.out("syntax error");
-		//	exit
-		//}
+		lex()
+		if(token != ")")
+		{
+			system.out("syntax error");
+			exit
+		}
 		
 		Opt_Declaration_List();
 		Body();
@@ -179,22 +142,18 @@ public class SyntaxAnalyzer {
 	
 	public void Parameter_List() {
 		Parameter();
-		//lex()
-		//if(token != ",")
-		//{
-		//	system.out("syntax error");
-		//	exit
-		//}
+		lex()
+		if(token != ",")
+		{
+			system.out("syntax error");
+			exit
+		}
 		Parameter_List_Prime();
 		
 	}
 
 	public void Parameter_List_Prime() {
 		Parameter();
-		if(isEmpty == true) {
-			System.out.println("Syntax error: expecting an identifier");
-			System.exit(0);
-		}
 		//lex()
 		//if(token != ",")
 		//{
@@ -207,10 +166,6 @@ public class SyntaxAnalyzer {
 	
 	public void Parameter() {
 		IDs();
-		if(isEmpty == true) {
-			Empty();
-			return;
-		}
 		//lex()
 		//if(token != ":")
 		//{
@@ -222,11 +177,11 @@ public class SyntaxAnalyzer {
 	}
 	
 	public void Qualifier() {
-		if(!Lexeme.equals ( "int") || "bolean" || "real"))
-		//{
-		//	system.out("syntax error");
-		//	exit
-		//}
+		if(!lexeme.equals("int") || !lexeme.equals("boolean") || !lexem.equals("real"))
+		{
+			system.out("syntax error");
+			exit
+		}
 	}
 	
 	public void Body() {
@@ -273,35 +228,31 @@ public class SyntaxAnalyzer {
 	{
 		Qualifier();
 		IDs();
-		if(isEmpty == true) {
-			System.out.println("Syntax error: expecting an identifier");
-			System.exit(0);
-		}
 	}
 	
 	public void IDs()
 	{
-		if(!Token.equals ("Identifier"))
+		if(!token.equals("Identifier"))
 		{
-			isEmpty = true;
-			return;
+			System.out.println("Expecting an identifier on line ____");
+			System.exit(0);
 		}
 		IDs_Prime();
 	}
 	
 	public void IDs_Prime()
 	{
-		
-		if(!Lexeme.equals( ","))
-		{
+		if(!lexeme.equals(",")){
+			
 			Empty();
 		}
-		if(!Token.equals( "Identifier"))
-		{
-			System.out.println("Syntax error: expecting an identifier");
+		if(!Token.eqauls("Identifier")) {
+			System.out.println("Expecting an identifier on line ____");
 			System.exit(0);
 		}
+		
 		IDs_Prime();
+		//or Empty();
 		
 	}
 	
@@ -514,7 +465,7 @@ public class SyntaxAnalyzer {
     }
     
     //37
-    private void Identifier_Prime() {
+    private Identifier_Prime() {
         
         if(token != "(") {
             Empty();
@@ -523,14 +474,11 @@ public class SyntaxAnalyzer {
         if(token != ")") {
             //error();
         }
-        
     }
     
     //38
-    private void Empty() {
-        //return epsilon
-    	isEmpty = false;
-    	return;
+    public void Empty() {
+        return;
     }
 	
 
