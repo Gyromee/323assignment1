@@ -80,6 +80,7 @@ public void start() throws FileNotFoundException, IOException {
 		lex();
 		if (!lexeme.equals("$$"))
 			error("$$");
+		System.out.println("TokenDONE: " + token + " Lexeme: " + lexeme);
 	}
 	
 
@@ -218,12 +219,20 @@ public void start() throws FileNotFoundException, IOException {
 		lex();
 		if(!lexeme.equals("{")) 
 			error("{");
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
+		System.out.println("Token123: " + token + " Lexeme: " + lexeme);
+		
 		Statement_List();
+		System.out.println("Token13: " + token + " Lexeme: " + lexeme);
+		x++;
+		
+		System.out.println("Token543: " + token + " Lexeme: " + lexeme);
 		lex();
-		if(!lexeme.equals("}"))
+		System.out.println("Tokenr: " + token + " Lexeme: " + lexeme);
+		if(!lexeme.equals("}")) {
+			System.out.println("Tokennnnn: " + token + " Lexeme: " + lexeme);
 			error("}");
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
+		}
+
 	}
 	
 	public void Opt_Declaration_List() {
@@ -291,18 +300,20 @@ public void start() throws FileNotFoundException, IOException {
 	
 	public void IDs_Prime()
 	{
+		lex();
 		System.out.println("R17. <IDs Prime> ::=	, <Identifier> <IDs Prime> | <Empty>");
 		if(!lexeme.equals(",")){
-			Empty();
+			isEmpty = true;
+			x--;
 			return;
 		}
-		
-		if(!token.matches("^Identifier.*")) 
-			error();
-		
-		IDs_Prime();
-		//or Empty();
-		
+		else {
+			lex();
+			if(!token.matches("^Identifier.*")) 
+				error();
+			IDs_Prime();
+			//or Empty();
+		}
 	}
 	
 	public void Statement_List()
@@ -335,6 +346,8 @@ public void start() throws FileNotFoundException, IOException {
 			If();
 		else if (lexeme.equals("return"))
 			Return();
+		else if (lexeme.equals("put"))
+			Print();
 		else if (lexeme.equals("get"))
 			Scan();
 		else if (lexeme.equals("while"))
@@ -366,8 +379,9 @@ public void start() throws FileNotFoundException, IOException {
 		
 		Expression();
 		lex();
-		if(!lexeme.equals(")"))
-			error(")");
+		if(!lexeme.equals(";"))
+			error(";");
+		
 	}
 	
 	public void If()
@@ -414,10 +428,14 @@ public void start() throws FileNotFoundException, IOException {
 		else {
 			Expression();
 			if(isEmpty == true)
-				error();
+				return;
 			else {
+				System.out.println("Token3333: " + token + " Lexeme: " + lexeme);
 				if(!lexeme.equals(";"))
 					error(";");
+				else {
+					return;
+				}
 			}
 		}
 	}
@@ -475,21 +493,28 @@ public void start() throws FileNotFoundException, IOException {
 		lex();
 		if(!lexeme.equals("whileend"))
 			error();
+		System.out.println("TokenPlease: " + token + " Lexeme: " + lexeme);
+
 	}
 	
 	public void Condition()
 	{
 		Expression();
 		Relop();
+		System.out.println("Tokenfuck: " + token + " Lexeme: " + lexeme);
 		Expression();
 	}
 	
     private void Relop() {
-    	 if(!lexeme.equals("==") || !lexeme.equals("^=") || !lexeme.equals(">") || !lexeme.equals("<") || !lexeme.equals("=>") ||!lexeme.equals("=<")) {
-             error();
-         }
-    	 else
-    		 return;
+		System.out.println("TokenREE: " + token + " Lexeme: " + lexeme);
+    	if(lexeme.equals("==")) return;
+    	else if(lexeme.equals("^=")) return;
+    	else if(lexeme.equals(">")) return;
+    	else if(lexeme.equals("<")) return;
+    	else if(lexeme.equals("=>")) return;
+    	else if(lexeme.equals("=<")) return;
+    	else
+    		error();
     }
     
     //31
@@ -506,11 +531,12 @@ public void start() throws FileNotFoundException, IOException {
     //32
     private void Expression_Prime() {
     	lex();
-        if(token=="+") {
+    	System.out.println("Token6: " + token + " Lexeme: " + lexeme);
+        if(lexeme.equals("+")) {
             Term();
             Expression_Prime();
         }
-        else if(token=="-") {
+        else if(lexeme.equals("-")) {
             Term();
             Expression_Prime();
         }
@@ -524,6 +550,7 @@ public void start() throws FileNotFoundException, IOException {
     
     //33
     private void Term() {    
+    	System.out.println("Token8: " + token + " Lexeme: " + lexeme);
         Factor();
         Term_Prime();        
         if(isEmpty == true) {
@@ -534,11 +561,13 @@ public void start() throws FileNotFoundException, IOException {
     
     //34
     private void Term_Prime() {
-        if(token == "*") {
+    	lex();
+    	System.out.println("Token7: " + token + " Lexeme: " + lexeme);
+        if(lexeme.equals("*")) {
             Factor();
             Term_Prime();
         }
-        else if(token == "/") {
+        else if(lexeme.equals( "/")) {
             Factor();
             Term_Prime();
         }
@@ -552,21 +581,24 @@ public void start() throws FileNotFoundException, IOException {
     
     //35
     private void Factor() {
+    	lex();
+    	System.out.println("Token5: " + token + " Lexeme: " + lexeme);
         if(lexeme.equals("-")) {
             Primary();
         }
         else {
             Primary();
             if(isEmpty == true)
-            	error();
+            	return;
         }
     }
     //36
     private void Primary() {
+    	lex();
+		System.out.println("TokenTEE: " + token + " Lexeme: " + lexeme);
         if(token.matches("^Identifier.*")) {
         	Identifier_Prime();
         	if(isEmpty == true)
-        		error();
         	return;
         }
         else if(token.matches("^Integer.*"))
@@ -587,8 +619,11 @@ public void start() throws FileNotFoundException, IOException {
         	return;
         else if(lexeme.equals("false"))
         	return;
-        else
-        	error("Primary");
+        else {
+        	isEmpty = true;
+        	x--;
+        	return;
+        }
         
     }
     
@@ -600,7 +635,6 @@ public void start() throws FileNotFoundException, IOException {
             return;
         }
         IDs();
-        
         if(isEmpty == true)
         	error();
         
