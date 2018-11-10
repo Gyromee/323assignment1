@@ -305,7 +305,7 @@ public void start() throws FileNotFoundException, IOException {
 			
 		System.out.println("");
 		System.out.println("Token: " + token + " Lexeme: " + lexeme);
-		System.out.println("R16. <IDs> ::=     <Identifier> <IDs Prime>");
+		System.out.println("<IDs> ::=     <Identifier> <IDs Prime>");
 		IDs_Prime();
 		if(isEmpty == true){
 			Empty();
@@ -323,9 +323,11 @@ public void start() throws FileNotFoundException, IOException {
 			return;
 		}
 		else {
+			System.out.println("Token: " + token + " Lexeme: " + lexeme);
 			lex();
 			if(!token.matches("^Identifier.*")) 
 				error();
+			System.out.println("Token: " + token + " Lexeme: " + lexeme);
 			IDs_Prime();
 			//or Empty();
 		}
@@ -468,9 +470,14 @@ public void start() throws FileNotFoundException, IOException {
 		if(!lexeme.equals("("))
 			error("(");
 		
+		System.out.println("");
+		System.out.println("Token: " + token + " Lexeme: " + lexeme);
+		
+		lex();
 		Expression();
 		if(isEmpty == true)
 			error();
+		
 		lex();
 		if(!lexeme.equals(")"))
 			error(")");
@@ -494,9 +501,15 @@ public void start() throws FileNotFoundException, IOException {
 		if(!lexeme.equals(")"))
 			error(")");
 		
+		System.out.println("");
+		System.out.println("Token: " + token + " Lexeme: " + lexeme);
+		
 		lex();
 		if(!lexeme.equals(";"))
 			error(";");
+		
+		System.out.println("");
+		System.out.println("Token: " + token + " Lexeme: " + lexeme);
 	}
 	
 	public void While() {
@@ -527,6 +540,7 @@ public void start() throws FileNotFoundException, IOException {
 		System.out.println("<Condition> ::=     <Expression>  <Relop>   <Expression>");
 		Expression();
 		Relop();
+		lex();
 		System.out.println("Tokenfuck: " + token + " Lexeme: " + lexeme);
 		Expression();
 	}
@@ -573,6 +587,7 @@ public void start() throws FileNotFoundException, IOException {
         else {
         	isEmpty = true;
         	x--;
+        	System.out.println("TokenAAAAAAAAAAA: " + token + " Lexeme: " + lexeme);
         	return;
         }
                   
@@ -636,7 +651,7 @@ public void start() throws FileNotFoundException, IOException {
         if(token.matches("^Identifier.*")) {
         	Identifier_Prime();
         	if(isEmpty == true)
-        	return;
+        		return;
         }
         else if(token.matches("^Integer.*"))
         	return;
@@ -667,6 +682,7 @@ public void start() throws FileNotFoundException, IOException {
     //37
     private void Identifier_Prime() {
         System.out.println("<Identifier Prime> ::= ( <IDs> ) | <Empty>");
+        
         if(token != "(") {
         	isEmpty = true;
             return;
