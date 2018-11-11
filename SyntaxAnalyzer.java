@@ -90,6 +90,7 @@ public void start() throws FileNotFoundException, IOException {
 		Opt_Declaration_List();
 		Statement_List();
 		lex();
+		
 		if (!lexeme.equals("$$")) {
 			x--;
 			error("$$");
@@ -170,7 +171,7 @@ public void start() throws FileNotFoundException, IOException {
 		Opt_Declaration_List();
 		
 		System.out.println("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>  <Body>");
-		lex();
+
 		Body();
 		
 	}
@@ -257,6 +258,7 @@ public void start() throws FileNotFoundException, IOException {
 			x--;
 			error("{");
 		}
+		lex();
 		
 		Statement_List();
 		x++;
