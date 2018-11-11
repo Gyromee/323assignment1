@@ -64,17 +64,18 @@ public void start() throws FileNotFoundException, IOException {
 	    token = temp[0];
 	    lexeme = temp[1];
 	    lineNumber = temp[2];
+	    
 	    x++;
 	}
 	private void error(String expectedString) {
         output.add("Error, expected a " + expectedString + " on line " + lineNumber + ".");
         output.add("");
-        lex();
+       // x++;
     }
     private void error() {
         output.add("Error, expected " + token + " on line " + lineNumber + ".");
         output.add("");
-        lex();
+       // x++;
     }
 	
 	public void Rat18F(){
@@ -483,7 +484,7 @@ public void start() throws FileNotFoundException, IOException {
 		lex();
 		if(!lexeme.equals("=")) {
 			x--;
-			error("==");
+			error("=");
 		}
 		
 		Expression();
@@ -702,6 +703,7 @@ public void start() throws FileNotFoundException, IOException {
         Term();
         Expression_Prime();
         if(isEmpty == true) {
+    
         	Empty();
         	return;
         }
