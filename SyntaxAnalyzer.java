@@ -714,12 +714,30 @@ public void start() throws FileNotFoundException, IOException {
     	output.add("<Expression Prime>  ::= + <Term> <Expression Prime>  |   - <Term> <Expression Prime>  | <Empty>");
     	lex();
         if(lexeme.equals("+")) {
-            Term();
-            Expression_Prime();
+        	lex();
+        	if(lexeme.equals("+"))
+        	{
+        		error("Detected an extra + operator");
+        	}
+        	else {
+        		x--;
+        		Term();
+                Expression_Prime();
+        	}
+
         }
         else if(lexeme.equals("-")) {
-            Term();
-            Expression_Prime();
+        	lex();
+        	if(lexeme.equals("-"))
+        	{
+        		error("Detected an extra - operator");
+        	}
+        	else {
+        		x--;
+        		Term();
+                Expression_Prime();
+        	}
+
         }
         else {
         	isEmpty = true;
@@ -746,16 +764,36 @@ public void start() throws FileNotFoundException, IOException {
     	lex();
         if(lexeme.equals("*")) {
         	output.add("");
-         	output.add("Token: " + token + " Lexeme: " + lexeme);
-            Factor();
-            Term_Prime();
+        	output.add("Token: " + token + " Lexeme: " + lexeme);
+        	lex();
+        	
+        	if(lexeme.equals("*"))
+        	{
+        		error("Detected an extra * operator");
+        	}
+        	else {
+        		--x;
+           	
+                Factor();
+                Term_Prime();
+        	}
+        	
      
         }
         else if(lexeme.equals( "/")) {
         	output.add("");
          	output.add("Token: " + token + " Lexeme: " + lexeme);
-            Factor();
-            Term_Prime();
+          	lex();
+        	if(lexeme.equals("/"))
+        	{
+        		error("Detected an extra / operator");
+        	}
+        	else {
+        		
+        		x--;
+                Factor();
+                Term_Prime();
+        	}
         }
         else {
         	output.add("");
