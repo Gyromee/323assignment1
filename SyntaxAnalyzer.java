@@ -25,6 +25,7 @@ public class SyntaxAnalyzer {
 		this.lexical = lexical;
 		this.tokensAndLexeme = lexical.getOutput();
 		
+		
 	}
 	
 public void start() throws FileNotFoundException, IOException {
@@ -46,16 +47,19 @@ public void start() throws FileNotFoundException, IOException {
 		
 		lex();
 		Rat18F();
-		for (String row : output) {
-            wr.write(row +  System.lineSeparator());
-        }
-        wr.close();
+		writeToFile(wr);
 		}
 
 		
 		
 	}
-
+	private void writeToFile(BufferedWriter wr) throws IOException {
+		for (String row : output) {
+            wr.write(row +  System.lineSeparator());
+        }
+        wr.close();
+        System.exit(0);;
+	}
 	private void lex() {
 	    String temp[] = tokensAndLexeme.get(x);
 	    token = temp[0];
@@ -65,11 +69,13 @@ public void start() throws FileNotFoundException, IOException {
 	}
 	private void error(String expectedString) {
         output.add("Error, expected a " + expectedString + " on line " + lineNumber + ".");
-        System.exit(0);
+        output.add("");
+        lex();
     }
     private void error() {
         output.add("Error, expected " + token + " on line " + lineNumber + ".");
-        System.exit(0);
+        output.add("");
+        lex();
     }
 	
 	public void Rat18F(){
