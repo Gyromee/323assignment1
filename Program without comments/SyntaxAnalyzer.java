@@ -18,12 +18,13 @@ public class SyntaxAnalyzer {
     private String token = "";
     private int x = 0;
 	private boolean isEmpty = false;
-	private ArrayList<String[]> output = new ArrayList<String[]>();
 	private ArrayList<String[]> tokensAndLexeme= new ArrayList<String[]>();
+	private ArrayList<String> output = new ArrayList<String>();
 	public SyntaxAnalyzer(String filename, LexicalAnalyzer lexical){
 		this.filename=filename;
 		this.lexical = lexical;
 		this.tokensAndLexeme = lexical.getOutput();
+		
 		
 	}
 	
@@ -36,84 +37,86 @@ public void start() throws FileNotFoundException, IOException {
 	    	 while((line = br.readLine())!= null) {
 	 	    	splitLine = line.trim().split("\\s+");
 	    		if(splitLine[0].matches("Invalid")) {
-	    
-	    			System.out.println("Detected an Invalid Token on line " + lexical.getLineNumber() + " for " + splitLine[1]);
-	    			System.exit(0);
+	    			output.add("Detected an Invalid Token on line " + lexical.getLineNumber() + " for " + splitLine[1]);
+	    			writeToFile(wr);
 	    		}
 	    	 }
 
-	    	 //prints out the arraylist
-//	    	 for (int i=0; i<tokensAndLexeme.size(); i++) {
-//	    		 String temp[] = tokensAndLexeme.get(i);
-//	             System.out.println(temp[0] +" "+ temp[1] + " " + temp[2]);
-//	    	 }	    	 	    		    	
+  	 	    		    	
 		
 		lex();
 		Rat18F();
+		writeToFile(wr);
 		}
-//	        for (String[] row : output) {
-//	            wr.write(row[0] + System.lineSeparator());
-//	        }
-//	        wr.close();
-//		    }
+
 		
 		
 	}
-
+	private void writeToFile(BufferedWriter wr) throws IOException {
+		for (String row : output) {
+            wr.write(row +  System.lineSeparator());
+        }
+        wr.close();
+        System.exit(0);;
+	}
 	private void lex() {
 	    String temp[] = tokensAndLexeme.get(x);
 	    token = temp[0];
 	    lexeme = temp[1];
 	    lineNumber = temp[2];
+	    
 	    x++;
 	}
 	private void error(String expectedString) {
-        System.out.println("Error, expected a " + expectedString + " on line " + lineNumber + ".");
-        System.exit(0);
+        output.add("Error, expected a " + expectedString + " on line " + lineNumber + ".");
+        output.add("");
+       // x++;
     }
     private void error() {
-        System.out.println("Error, expected " + token + " on line " + lineNumber + ".");
-        System.exit(0);
+        output.add("Error, expected " + token + " on line " + lineNumber + ".");
+        output.add("");
+       // x++;
     }
 	
 	public void Rat18F(){
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
-		System.out.println("<Rat18F>  ::=   <Opt Function Definitions>");
+		output.add("Token: " + token + " Lexeme: " + lexeme);
+		output.add("<Rat18F>  ::=   <Opt Function Definitions>");
 		Opt_Function_Definitions();
 		lex();
 		if (!lexeme.equals("$$")) {
 			x--;
 			error("$$");
 		}
-		System.out.println("");
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
+		output.add("");
+		output.add("Token: " + token + " Lexeme: " + lexeme);
 		Opt_Declaration_List();
 		Statement_List();
 		lex();
+		
 		if (!lexeme.equals("$$")) {
 			x--;
 			error("$$");
 		}
-		System.out.println("");
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
+		output.add("");
+		output.add("Token: " + token + " Lexeme: " + lexeme);
 	}
 	
 
 	public void Opt_Function_Definitions(){
-		System.out.println("<Opt Function Definitions> ::= <Function Definitions> ");
+		output.add("<Opt Function Definitions> ::= <Function Definitions> ");
 		Function_Definitions();
 		Empty();
 	}
 	
 	public void Function_Definitions(){
-		System.out.println("<Function Definitions>  ::= <Function>");
+		output.add("<Function Definitions>  ::= <Function>");
 		Function();
 		Function_Definition_Prime();
 	}
 	
 	public void Function_Definition_Prime()
 	{
-		System.out.println("<Function Definitions Prime> ::= <Function> <Function Definitions Prime> | <Empty>");
+		output.add("<Function Definitions Prime> ::= <Function> <Function Definitions Prime> | <Empty>");
 		if(isEmpty == false) {
 			Function();
 			Function_Definition_Prime();
@@ -126,7 +129,7 @@ public void start() throws FileNotFoundException, IOException {
 	
 	public void Function()
 	{
-		System.out.println("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>  <Body>");
+		output.add("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>  <Body>");
 		//Call the next element and token of the array  
 		if(!lexeme.equals("function")) {
 			x--;
@@ -143,18 +146,18 @@ public void start() throws FileNotFoundException, IOException {
 			
 		}
 			
-		System.out.println("<Function> ::= function  <Identifier>");
+		output.add("<Function> ::= function  <Identifier>");
 		//Print token and Lexeme
-		System.out.println("");
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
+		output.add("");
+		output.add("Token: " + token + " Lexeme: " + lexeme);
 		
 		lex();
 		if(!lexeme.equals("(")) {
 			x--;
 			error("(");
 		}
-		System.out.println("");
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
+		output.add("");
+		output.add("Token: " + token + " Lexeme: " + lexeme);
 		
 		Opt_Parameter_List();
 		lex();
@@ -163,26 +166,26 @@ public void start() throws FileNotFoundException, IOException {
 			x--;
 			error(")");
 		}
-		System.out.println("");
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
-		System.out.println("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>  <Body>");
+		output.add("");
+		output.add("Token: " + token + " Lexeme: " + lexeme);
+		output.add("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>  <Body>");
 
 		Opt_Declaration_List();
 		
-		System.out.println("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>  <Body>");
-		lex();
+		output.add("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>  <Body>");
+
 		Body();
 		
 	}
 	
 	public void Opt_Parameter_List() {
-		System.out.println("<Opt Parameter List> ::=  <Parameter List>    |     <Empty>");
+		output.add("<Opt Parameter List> ::=  <Parameter List>    |     <Empty>");
 		Parameter_List();
 		Empty();
 	}
 	
 	public void Parameter_List() {
-		System.out.println("<Parameter List>  ::=  <Parameter> <Parameter List Prime>");
+		output.add("<Parameter List>  ::=  <Parameter> <Parameter List Prime>");
 		Parameter();
 		if(isEmpty == true)
 			return;
@@ -191,7 +194,7 @@ public void start() throws FileNotFoundException, IOException {
 	}
 
 	public void Parameter_List_Prime() {
-		System.out.println("<Parameter List Prime>  ::=  , <Parameter> <Parameter List Prime>    |     <Empty>");
+		output.add("<Parameter List Prime>  ::=  , <Parameter> <Parameter List Prime>    |     <Empty>");
 		lex();
 		
 		if(!lexeme.equals(",")) {
@@ -209,7 +212,7 @@ public void start() throws FileNotFoundException, IOException {
 	}
 	
 	public void Parameter() {
-		System.out.println("<Parameter> ::=  <IDs > : <Qualifier> ");
+		output.add("<Parameter> ::=  <IDs > : <Qualifier> ");
 		IDs();
 		if(isEmpty == true) {
 			x--;
@@ -222,26 +225,26 @@ public void start() throws FileNotFoundException, IOException {
 			error(":");
 		}
 		//print out :
-		System.out.println("");
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
-		System.out.println("<Parameter> ::=  <IDs > : <Qualifier> ");
+		output.add("");
+		output.add("Token: " + token + " Lexeme: " + lexeme);
+		output.add("<Parameter> ::=  <IDs > : <Qualifier> ");
 		
 		
 		Qualifier();
 		if(isEmpty == true) {
-			System.out.println("Expecting a qualifier on line: " + lineNumber);
+			output.add("Expecting a qualifier on line: " + lineNumber);
 			System.exit(0);
 		}
 
 	}
 	
 	public void Qualifier() {
-		System.out.println("<Qualifier> ::= int     |    boolean    |  real ");
+		output.add("<Qualifier> ::= int     |    boolean    |  real ");
 		lex();
 		if(lexeme.equals("int") || lexeme.equals("boolean") || lexeme.equals("real")) {
-			System.out.println("");
-			System.out.println("Token: " + token + " Lexeme: " + lexeme);
-			System.out.println("<Qualifier> ::= int     |    boolean    |  real ");
+			output.add("");
+			output.add("Token: " + token + " Lexeme: " + lexeme);
+			output.add("<Qualifier> ::= int     |    boolean    |  real ");
 		}
 		else{
 			
@@ -252,11 +255,12 @@ public void start() throws FileNotFoundException, IOException {
 	}
 	
 	public void Body() {
-		System.out.println("<Body>  ::=  {  < Statement List>  }");
+		output.add("<Body>  ::=  {  < Statement List>  }");
 		if(!lexeme.equals("{")) {
 			x--;
 			error("{");
 		}
+		lex();
 		
 		Statement_List();
 		x++;
@@ -267,66 +271,67 @@ public void start() throws FileNotFoundException, IOException {
 			x--;
 			error("}");
 		}
-		System.out.println("");
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
+		output.add("");
+		output.add("Token: " + token + " Lexeme: " + lexeme);
 
 	}
 	
 	public void Opt_Declaration_List() {
-		System.out.println("<Opt Declaration List> ::= <Declaration List>   |    <Empty>");
+		output.add("<Opt Declaration List> ::= <Declaration List>   |    <Empty>");
 		Declaration_List();
 		Empty();
 	}
 	
 	public void Declaration_List() {
-		System.out.println("<Declaration List>  ::= <Declaration> <Declaration List Prime>");
+		output.add("<Declaration List>  ::= <Declaration> <Declaration List Prime>");
 		Declaration();
 		if(isEmpty == true) {
-			System.out.println("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>");
+			output.add("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>");
 			return;
 		}
 		Declaration_List_Prime();
 	}
 	
 	public void Declaration_List_Prime() {
-		lex();
-		System.out.println("<Declaration List Prime>  ::= ; <Declaration> <Declaration List Prime>  |  <Empty>");
+        lex();
+        output.add("<Declaration List Prime>  ::= ; <Declaration> <Declaration List Prime>  |  <Empty>");
 
-		if(!lexeme.equals(";")) {
-			System.out.println("");
-			System.out.println("Token: " + token + " Lexeme: " + lexeme);
-			x--;
-			return;
-		}
-		if(lexeme.equals(";")){
-			System.out.println("");
-			System.out.println("Token: " + token + " Lexeme: " + lexeme);
-			return;
-		}
-		else {
-			lex();
-			if(lexeme.equals("{")) {
-				System.out.println("");
-				System.out.println("Token: " + token + " Lexeme: " + lexeme);
-				x--;
-				error("{");
-			}
-			else
-				x--;
-			
-				
-		}
-		Declaration();
-		if(isEmpty == true) {
-			System.out.println("Expecting a qualifier on line: " + lineNumber);
-			System.exit(0);
-		}
-		Declaration_List_Prime();
-	}
+        if(!lexeme.equals(";")) {
+            output.add("");
+            output.add("Token: " + token + " Lexeme: " + lexeme);
+            x--;
+            return;
+        }
+        if(lexeme.equals(";")){
+            output.add("");
+            output.add("Token: " + token + " Lexeme: " + lexeme);
+            Declaration();
+
+        }
+        else {
+            lex();
+            if(lexeme.equals("{")) {
+                output.add("");
+                output.add("Token: " + token + " Lexeme: " + lexeme);
+                x--;
+                error("{");
+            }
+            else
+                x--;
+            
+                
+        }
+        Declaration();
+        if(isEmpty == true) {
+            output.add("Expecting a qualifier on line: " + lineNumber);
+            System.exit(0);
+        }
+        Declaration_List_Prime();
+    }
 	
 	public void Declaration()
 	{
-		System.out.println("<Declaration> ::=   <Qualifier > <IDs>");
+		output.add("<Declaration> ::=   <Qualifier > <IDs>");
 		Qualifier();
 		if(isEmpty == true) {
 			x--;
@@ -346,7 +351,7 @@ public void start() throws FileNotFoundException, IOException {
 	
 	public void IDs()
 	{
-		System.out.println("<IDs> ::=     <Identifier> <IDs Prime>");
+		output.add("<IDs> ::=     <Identifier> <IDs Prime>");
 		lex();
 		
 		if(!token.matches("^Identifier.*")) {
@@ -354,9 +359,9 @@ public void start() throws FileNotFoundException, IOException {
 			return;
 		}
 			
-		System.out.println("");
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
-		System.out.println("<IDs> ::=     <Identifier> <IDs Prime>");
+		output.add("");
+		output.add("Token: " + token + " Lexeme: " + lexeme);
+		output.add("<IDs> ::=     <Identifier> <IDs Prime>");
 		IDs_Prime();
 		if(isEmpty == true){
 			Empty();
@@ -367,7 +372,7 @@ public void start() throws FileNotFoundException, IOException {
 	public void IDs_Prime()
 	{
 		lex();
-		System.out.println("<IDs Prime> ::=	, <Identifier> <IDs Prime> | <Empty>");
+		output.add("<IDs Prime> ::=	, <Identifier> <IDs Prime> | <Empty>");
 		if(!lexeme.equals(",")){
 			isEmpty = true;
 			x--;
@@ -375,23 +380,22 @@ public void start() throws FileNotFoundException, IOException {
 		}
 		
 		else {
-			System.out.println("");
-			System.out.println("Token: " + token + " Lexeme: " + lexeme);
+			output.add("");
+			output.add("Token: " + token + " Lexeme: " + lexeme);
 			lex();
 			if(!token.matches("^Identifier.*")) {
 				x--;
 				error();
 			}
-			System.out.println("");
-			System.out.println("Token: " + token + " Lexeme: " + lexeme);
+			output.add("");
+			output.add("Token: " + token + " Lexeme: " + lexeme);
 			IDs_Prime();
-			//or Empty();
 		}
 	}
 	
 	public void Statement_List()
 	{
-		System.out.println("<Statement List> ::=   <Statement> <Statement List Prime>");
+		output.add("<Statement List> ::=   <Statement> <Statement List Prime>");
 		Statement();
 		if(isEmpty == true)
 			return;
@@ -402,8 +406,7 @@ public void start() throws FileNotFoundException, IOException {
 	
 	public void Statement_List_Prime()
 	{
-		System.out.println("<Statement List Prime> ::= <Statement> <Statement List Prime> | <Empty>");
-
+		output.add("<Statement List Prime> ::= <Statement> <Statement List Prime> | <Empty>");
 		Statement();
 		if(isEmpty == true) 
 			return;
@@ -412,48 +415,47 @@ public void start() throws FileNotFoundException, IOException {
 
 	public void Statement()
 	{
-		System.out.println("<Statement> ::=   <Compound>  |  <Assign>  |   <If>  |  <Return>   | <Print>   |   <Scan>   |  <While>");
+
+		output.add("<Statement> ::=   <Compound>  |  <Assign>  |   <If>  |  <Return>   | <Print>   |   <Scan>   |  <While>");
 
 		lex();
 		if (lexeme.equals("{")) {
-			System.out.println("");
-	     	System.out.println("Token: " + token + " Lexeme: " + lexeme);
+			output.add("");
+	     	output.add("Token: " + token + " Lexeme: " + lexeme);
 			Compound();
 			
 		}
 		else if (token.matches("^Identifier.*")) {
-			System.out.println("");
-	     	System.out.println("Token: " + token + " Lexeme: " + lexeme);
+			output.add("");
+	     	output.add("Token: " + token + " Lexeme: " + lexeme);
 	     	Assign();
 		}
 		else if (lexeme.equals("if")){
-			System.out.println("");
-	     	System.out.println("Token: " + token + " Lexeme: " + lexeme);
+			output.add("");
+	     	output.add("Token: " + token + " Lexeme: " + lexeme);
 	     	If();
 		}
 		else if (lexeme.equals("return")){
-			System.out.println("");
-	     	System.out.println("Token: " + token + " Lexeme: " + lexeme);
+			output.add("");
+	     	output.add("Token: " + token + " Lexeme: " + lexeme);
 	     	Return();
 		}
 		else if (lexeme.equals("put")){
-			System.out.println("");
-	     	System.out.println("Token111: " + token + " Lexeme: " + lexeme);
+			output.add("");
+	     	output.add("Token: " + token + " Lexeme: " + lexeme);
 	     	Print();
 		}
 		else if (lexeme.equals("get")){
-			System.out.println("");
-	     	System.out.println("Token: " + token + " Lexeme: " + lexeme);
+			output.add("");
+	     	output.add("Token: " + token + " Lexeme: " + lexeme);
 	     	Scan();
 		}
 		else if (lexeme.equals("while")){
-			System.out.println("");
-	     	System.out.println("Token: " + token + " Lexeme: " + lexeme);
+			output.add("");
+	     	output.add("Token: " + token + " Lexeme: " + lexeme);
 	     	While();
 		}
 		else {
-//			System.out.println("");
-//			System.out.println("Token11: " + token + " Lexeme: " + lexeme);
 			isEmpty = true;
 			x--;
 			return;
@@ -465,20 +467,20 @@ public void start() throws FileNotFoundException, IOException {
 	
 	public void Compound()
 	{
-		System.out.println("<Compound> ::=   {  <Statement List>  } ");
+		output.add("<Compound> ::=   {  <Statement List>  } ");
 		Statement_List();
 		lex();
 		if(!lexeme.equals("}")) {
 			x--;
 			error("}");
 		}
-		System.out.println("");
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
+		output.add("");
+		output.add("Token: " + token + " Lexeme: " + lexeme);
 	}
 	
 	public void Assign()
 	{
-		System.out.println("<Assign> ::=     <Identifier> = <Expression> ;");
+		output.add("<Assign> ::=     <Identifier> = <Expression> ;");
 		lex();
 		if(!lexeme.equals("=")) {
 			x--;
@@ -496,7 +498,7 @@ public void start() throws FileNotFoundException, IOException {
 	
 	public void If()
 	{
-		System.out.println("<If> ::= if (<Condition>) <Statement> <If Prime>");
+		output.add("<If> ::= if (<Condition>) <Statement> <If Prime>");
 		lex();
 		if(!lexeme.equals("(")) {
 			x--;
@@ -514,16 +516,16 @@ public void start() throws FileNotFoundException, IOException {
 	
 	public void If_Prime()
 	{
-		System.out.println("<If Prime> ::= ifend |	else  <Statement>  ifend");
+		output.add("<If Prime> ::= ifend |	else  <Statement>  ifend");
 		lex();
 		if(lexeme.equals("ifend")) {
-			System.out.println("Token: " + token + " Lexeme: " + lexeme);
+			output.add("Token: " + token + " Lexeme: " + lexeme);
 			return;
 		}
 		else if (lexeme.equals("^else.*")) {
 			Statement();
 			if(lexeme.equals("^ifend.*")) {
-				System.out.println("Token: " + token + " Lexeme: " + lexeme);
+				output.add("Token: " + token + " Lexeme: " + lexeme);
 				return;
 			}
 	
@@ -542,13 +544,13 @@ public void start() throws FileNotFoundException, IOException {
 	}
 	
 	public void Return() {
-		System.out.println("<Return> ::=  return <Return Prime>");
+		output.add("<Return> ::=  return <Return Prime>");
 		Return_Prime();
 	}
 	
 	public void Return_Prime()
 	{
-		System.out.println("<Return Prime> ::= ; |  <Expression>;");
+		output.add("<Return Prime> ::= ; |  <Expression>;");
 		lex();
 		if(lexeme.equals(";"))
 			return;
@@ -557,8 +559,6 @@ public void start() throws FileNotFoundException, IOException {
 			if(isEmpty == true)
 				return;
 			else {
-//				System.out.println("TEST");
-//				System.out.println("Token: " + token + " Lexeme: " + lexeme);
 				if(!lexeme.equals(";")) {
 					x--;
 					error(";");
@@ -571,7 +571,7 @@ public void start() throws FileNotFoundException, IOException {
 	}
 	
 	public void Print() {
-		System.out.println("<Print> ::=    put ( <Expression>);");
+		output.add("<Print> ::=    put ( <Expression>);");
 		lex();
 		if(!lexeme.equals("(")) {
 			x--;
@@ -579,10 +579,10 @@ public void start() throws FileNotFoundException, IOException {
 		}
 			
 		
-		System.out.println("");
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
+		output.add("");
+		output.add("Token: " + token + " Lexeme: " + lexeme);
 		
-		lex();
+		//lex();
 		Expression();
 		if(isEmpty == true) {
 			x--;
@@ -600,18 +600,20 @@ public void start() throws FileNotFoundException, IOException {
 			x--;
 			error(";");
 		}
+		output.add("");
+     	output.add("Token: " + token + " Lexeme: " + lexeme);
 		
 	}
 	
 	public void Scan() {
-		System.out.println("<Scan> ::=    get ( <IDs> );");
+		output.add("<Scan> ::=    get ( <IDs> );");
 		lex();
 		if(!lexeme.equals("(")) {
 			x--;
 			error("(");
 		}
-		System.out.println("");
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
+		output.add("");
+		output.add("Token: " + token + " Lexeme: " + lexeme);
 		
 		IDs();
 		if(isEmpty == true) {
@@ -626,20 +628,20 @@ public void start() throws FileNotFoundException, IOException {
 		}
 		
 		
-		System.out.println("");
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
+		output.add("");
+		output.add("Token: " + token + " Lexeme: " + lexeme);
 		
 		lex();
 		if(!lexeme.equals(";")) {
 			x--;
 			error(";");
 		}
-		System.out.println("");
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
+		output.add("");
+		output.add("Token: " + token + " Lexeme: " + lexeme);
 	}
 	
 	public void While() {
-		System.out.println("<While> ::=  while ( <Condition>  )  <Statement>  whileend");
+		output.add("<While> ::=  while ( <Condition>  )  <Statement>  whileend");
 		lex();
 		if(!lexeme.equals("(")) {
 			x--;
@@ -663,14 +665,14 @@ public void start() throws FileNotFoundException, IOException {
 			x--;
 			error("whileend");
 		}
-		System.out.println("");
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
+		output.add("");
+		output.add("Token: " + token + " Lexeme: " + lexeme);
 
 	}
 	
 	public void Condition()
 	{
-		System.out.println("<Condition> ::=     <Expression>  <Relop>   <Expression>");
+		output.add("<Condition> ::=     <Expression>  <Relop>   <Expression>");
 		Expression();
 		lex();
 		Relop();
@@ -679,9 +681,8 @@ public void start() throws FileNotFoundException, IOException {
 	}
 	
     private void Relop() {
-    	System.out.println("<Relop> ::=        ==   |   ^=    |   >     |   <    |   =>    |   =<");
-//    	System.out.println("");
-//		System.out.println("Token: " + token + " Lexeme: " + lexeme);
+    	output.add("<Relop> ::=        ==   |   ^=    |   >     |   <    |   =>    |   =<");
+
     	if(lexeme.equals("==")) return;
     	else if(lexeme.equals("^=")) return;
     	else if(lexeme.equals(">")) return;
@@ -696,12 +697,13 @@ public void start() throws FileNotFoundException, IOException {
     
     //31
     private void Expression() {
-    	System.out.println("<Expression>  ::=    <Term> <Expression Prime>");
-    	System.out.println("");
-    	System.out.println("Token: " + token + " Lexeme: " + lexeme);
+    	output.add("<Expression>  ::=    <Term> <Expression Prime>");
+    	output.add("");
+    	output.add("TokenHLLOE: " + token + " Lexeme: " + lexeme);
         Term();
         Expression_Prime();
         if(isEmpty == true) {
+    
         	Empty();
         	return;
         }
@@ -709,15 +711,33 @@ public void start() throws FileNotFoundException, IOException {
     
     //32
     private void Expression_Prime() {
-    	System.out.println("<Expression Prime>  ::= + <Term> <Expression Prime>  |   - <Term> <Expression Prime>  | <Empty>");
-    	lex();;
+    	output.add("<Expression Prime>  ::= + <Term> <Expression Prime>  |   - <Term> <Expression Prime>  | <Empty>");
+    	lex();
         if(lexeme.equals("+")) {
-            Term();
-            Expression_Prime();
+        	lex();
+        	if(lexeme.equals("+"))
+        	{
+        		error("Detected an extra + operator");
+        	}
+        	else {
+        		x--;
+        		Term();
+                Expression_Prime();
+        	}
+
         }
         else if(lexeme.equals("-")) {
-            Term();
-            Expression_Prime();
+        	lex();
+        	if(lexeme.equals("-"))
+        	{
+        		error("Detected an extra - operator");
+        	}
+        	else {
+        		x--;
+        		Term();
+                Expression_Prime();
+        	}
+
         }
         else {
         	isEmpty = true;
@@ -729,7 +749,7 @@ public void start() throws FileNotFoundException, IOException {
     
     //33
     private void Term() {    
-    	System.out.println("<Term>  ::= <Factor> <Term Prime>");
+    	output.add("<Term>  ::= <Factor> <Term Prime>");
         Factor();
         Term_Prime();        
         if(isEmpty == true) {
@@ -740,24 +760,44 @@ public void start() throws FileNotFoundException, IOException {
     
     //34
     private void Term_Prime() {
-    	System.out.println("<Term Prime>  ::= * <Factor> <Term Prime>  |   / <Factor> <Term Prime>  | <Empty>");
+    	output.add("<Term Prime>  ::= * <Factor> <Term Prime>  |   / <Factor> <Term Prime>  | <Empty>");
     	lex();
         if(lexeme.equals("*")) {
-        	System.out.println("");
-         	System.out.println("Token111111111111: " + token + " Lexeme: " + lexeme);
-            Factor();
-            Term_Prime();
+        	output.add("");
+        	output.add("Token: " + token + " Lexeme: " + lexeme);
+        	lex();
+        	
+        	if(lexeme.equals("*"))
+        	{
+        		error("Detected an extra * operator");
+        	}
+        	else {
+        		--x;
+           	
+                Factor();
+                Term_Prime();
+        	}
+        	
      
         }
         else if(lexeme.equals( "/")) {
-        	System.out.println("");
-         	System.out.println("Token111111111111: " + token + " Lexeme: " + lexeme);
-            Factor();
-            Term_Prime();
+        	output.add("");
+         	output.add("Token: " + token + " Lexeme: " + lexeme);
+          	lex();
+        	if(lexeme.equals("/"))
+        	{
+        		error("Detected an extra / operator");
+        	}
+        	else {
+        		
+        		x--;
+                Factor();
+                Term_Prime();
+        	}
         }
         else {
-        	System.out.println("");
-         	System.out.println("Token111111111111: " + token + " Lexeme: " + lexeme);
+        	output.add("");
+         	output.add("Token: " + token + " Lexeme: " + lexeme);
         	isEmpty = true;
         	x--;
         	return;
@@ -767,10 +807,12 @@ public void start() throws FileNotFoundException, IOException {
     
     //35
     private void Factor() {
-    	System.out.println("<Factor> ::=      -  <Primary>    |    <Primary>");
+    	output.add("<Factor> ::=      -  <Primary>    |    <Primary>");
     	lex();
         if(lexeme.equals("-")) {
             Primary();
+        	output.add("");
+	     	output.add("Token: " + token + " Lexeme: " + lexeme);
         }
         else {
         	x--;
@@ -779,23 +821,23 @@ public void start() throws FileNotFoundException, IOException {
             	return;
         }
     }
-    //36
+   
     private void Primary() {
-    	System.out.println("<Primary> ::=     <Identifier> <Identifier Prime>  |  <Integer>  |   ( <Expression> )   | <Real>  |   true   |  false");
+    	output.add("<Primary> ::=     <Identifier> <Identifier Prime>  |  <Integer>  |   ( <Expression> )   | <Real>  |   true   |  false");
 
   
     	lex();
     	//
         if(token.matches("^Identifier.*")) {
-        	System.out.println("");
-        	System.out.println("Token: " + token + " Lexeme: " + lexeme);
+        	output.add("");
+        	output.add("TokenFFFFF: " + token + " Lexeme: " + lexeme);
         	Identifier_Prime();
         	if(isEmpty == true)
         		return;
         }
         else if(token.matches("^Integer.*")) {
-        	System.out.println("");
-        	System.out.println("Token: " + token + " Lexeme: " + lexeme);
+        	output.add("");
+        	output.add("Token: " + token + " Lexeme: " + lexeme);
         	return;
         }
 
@@ -820,10 +862,7 @@ public void start() throws FileNotFoundException, IOException {
         else if(lexeme.equals("false"))
         	return;
         else {
-//        	System.out.println("");
-//        	System.out.println("Token11111111111: " + token + " Lexeme: " + lexeme);
         	isEmpty = true;
-        	
         	x--;
         	return;
         }
@@ -832,10 +871,13 @@ public void start() throws FileNotFoundException, IOException {
     
     //37
     private void Identifier_Prime() {
-        System.out.println("<Identifier Prime> ::= ( <IDs> ) | <Empty>");
+        output.add("<Identifier Prime> ::= ( <IDs> ) | <Empty>");
         
-        if(token != "(") {
+        lex();
+        
+        if(!lexeme.equals("(")) {
         	isEmpty = true;
+        	x--;
             return;
         }
         IDs();
@@ -854,7 +896,7 @@ public void start() throws FileNotFoundException, IOException {
     
     //38
     public void Empty() {
-    	System.out.println("<Empty>   ::= E");
+    	output.add("<Empty>   ::= E");
     	isEmpty = false;
         return;
     }
