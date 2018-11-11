@@ -161,7 +161,8 @@ public void start() throws FileNotFoundException, IOException {
 		Opt_Declaration_List();
 		
 		System.out.println("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>  <Body>");
-		System.out.println("TokenAAAAAAAAAAA: " + token + " Lexeme: " + lexeme);
+		lex();
+		System.out.println("Token: " + token + " Lexeme: " + lexeme);
 		Body();
 		
 	}
@@ -244,7 +245,6 @@ public void start() throws FileNotFoundException, IOException {
 	
 	public void Body() {
 		System.out.println("<Body>  ::=  {  < Statement List>  }");
-		lex();
 		if(!lexeme.equals("{")) {
 			x--;
 			error("{");
@@ -376,10 +376,8 @@ public void start() throws FileNotFoundException, IOException {
 	{
 		System.out.println("<Statement List> ::=   <Statement> <Statement List Prime>");
 		Statement();
-		if(isEmpty == true) {
-			Empty();
+		if(isEmpty == true)
 			return;
-		}
 		Statement_List_Prime();
 		
 	}
@@ -396,6 +394,7 @@ public void start() throws FileNotFoundException, IOException {
 	public void Statement()
 	{
 		System.out.println("<Statement> ::=   <Compound>  |  <Assign>  |   <If>  |  <Return>   | <Print>   |   <Scan>   |  <While>");
+		System.out.println("Token: " + token + " Lexeme: " + lexeme);
 		lex();
 		System.out.println("");
 		System.out.println("Token: " + token + " Lexeme: " + lexeme);
@@ -468,10 +467,6 @@ public void start() throws FileNotFoundException, IOException {
 			error(")");
 		}
 		Statement();
-		if(isEmpty == true) {
-			error("expect statement");
-
-		}
 		If_Prime();
 	}
 	
@@ -490,11 +485,17 @@ public void start() throws FileNotFoundException, IOException {
 				return;
 			}
 	
-			else
-				System.exit(0);
+			else {
+				x--;
+				error();
+			}
+				
 		}
-		else
-			System.exit(0);
+		else {
+			x--; 
+			error();
+		}
+			
 		
 	}
 	
@@ -583,8 +584,8 @@ public void start() throws FileNotFoundException, IOException {
 		System.out.println("Token: " + token + " Lexeme: " + lexeme);
 		
 		lex();
-		System.out.println("TokenPUUT: " + token + " Lexeme: " + lexeme);
 		if(!lexeme.equals(";")) {
+			x--;
 			error(";");
 		}
 		System.out.println("");
@@ -627,13 +628,13 @@ public void start() throws FileNotFoundException, IOException {
 		Expression();
 		Relop();
 		lex();
-		System.out.println("Tokenfuck: " + token + " Lexeme: " + lexeme);
 		Expression();
 	}
 	
     private void Relop() {
     	System.out.println("<Relop> ::=        ==   |   ^=    |   >     |   <    |   =>    |   =<");
-		System.out.println("TokenREE: " + token + " Lexeme: " + lexeme);
+    	System.out.println("");
+		System.out.println("Token: " + token + " Lexeme: " + lexeme);
     	if(lexeme.equals("==")) return;
     	else if(lexeme.equals("^=")) return;
     	else if(lexeme.equals(">")) return;
