@@ -161,7 +161,6 @@ public void start() throws FileNotFoundException, IOException {
 		Opt_Declaration_List();
 		
 		System.out.println("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>  <Body>");
-		lex();
 		System.out.println("TokenAAAAAAAAAAA: " + token + " Lexeme: " + lexeme);
 		Body();
 		
@@ -245,6 +244,7 @@ public void start() throws FileNotFoundException, IOException {
 	
 	public void Body() {
 		System.out.println("<Body>  ::=  {  < Statement List>  }");
+		lex();
 		if(!lexeme.equals("{")) {
 			x--;
 			error("{");
@@ -376,8 +376,10 @@ public void start() throws FileNotFoundException, IOException {
 	{
 		System.out.println("<Statement List> ::=   <Statement> <Statement List Prime>");
 		Statement();
-		if(isEmpty == true)
+		if(isEmpty == true) {
+			Empty();
 			return;
+		}
 		Statement_List_Prime();
 		
 	}
@@ -466,6 +468,10 @@ public void start() throws FileNotFoundException, IOException {
 			error(")");
 		}
 		Statement();
+		if(isEmpty == true) {
+			error("expect statement");
+
+		}
 		If_Prime();
 	}
 	
@@ -577,8 +583,8 @@ public void start() throws FileNotFoundException, IOException {
 		System.out.println("Token: " + token + " Lexeme: " + lexeme);
 		
 		lex();
+		System.out.println("TokenPUUT: " + token + " Lexeme: " + lexeme);
 		if(!lexeme.equals(";")) {
-			x--;
 			error(";");
 		}
 		System.out.println("");
