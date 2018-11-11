@@ -37,9 +37,8 @@ public void start() throws FileNotFoundException, IOException {
 	    	 while((line = br.readLine())!= null) {
 	 	    	splitLine = line.trim().split("\\s+");
 	    		if(splitLine[0].matches("Invalid")) {
-	    
 	    			output.add("Detected an Invalid Token on line " + lexical.getLineNumber() + " for " + splitLine[1]);
-	    			System.exit(0);
+	    			writeToFile(wr);
 	    		}
 	    	 }
 
@@ -484,7 +483,7 @@ public void start() throws FileNotFoundException, IOException {
 		lex();
 		if(!lexeme.equals("=")) {
 			x--;
-			error("=");
+			error("==");
 		}
 		
 		Expression();
