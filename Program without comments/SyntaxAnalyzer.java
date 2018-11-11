@@ -46,9 +46,17 @@ public void start() throws FileNotFoundException, IOException {
 //	    		 String temp[] = tokensAndLexeme.get(i);
 //	             System.out.println(temp[0] +" "+ temp[1] + " " + temp[2]);
 //	    	 }	    	 	    		    	
-		}
+		
 		lex();
 		Rat18F();
+		}
+//	        for (String[] row : tokensAndLexeme) {
+//	            wr.write(row[0] + row[1] + System.lineSeparator());
+//	        }
+//	        wr.close();
+//		    }
+		
+		
 	}
 
 	private void lex() {
@@ -162,7 +170,6 @@ public void start() throws FileNotFoundException, IOException {
 		
 		System.out.println("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>  <Body>");
 		lex();
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
 		Body();
 		
 	}
@@ -251,12 +258,10 @@ public void start() throws FileNotFoundException, IOException {
 		}
 		
 		Statement_List();
-		System.out.println("Token13: " + token + " Lexeme: " + lexeme);
 		x++;
-		
-		System.out.println("Token543: " + token + " Lexeme: " + lexeme);
+
 		lex();
-		System.out.println("Tokenr: " + token + " Lexeme: " + lexeme);
+
 		if(!lexeme.equals("}")) {
 			x--;
 			error("}");
@@ -394,7 +399,6 @@ public void start() throws FileNotFoundException, IOException {
 	public void Statement()
 	{
 		System.out.println("<Statement> ::=   <Compound>  |  <Assign>  |   <If>  |  <Return>   | <Print>   |   <Scan>   |  <While>");
-		System.out.println("Token: " + token + " Lexeme: " + lexeme);
 		lex();
 		System.out.println("");
 		System.out.println("Token: " + token + " Lexeme: " + lexeme);
@@ -481,7 +485,7 @@ public void start() throws FileNotFoundException, IOException {
 		else if (lexeme.equals("^else.*")) {
 			Statement();
 			if(lexeme.equals("^ifend.*")) {
-				System.out.println("Token3333: " + token + " Lexeme: " + lexeme);
+				System.out.println("Token: " + token + " Lexeme: " + lexeme);
 				return;
 			}
 	
@@ -515,7 +519,7 @@ public void start() throws FileNotFoundException, IOException {
 			if(isEmpty == true)
 				return;
 			else {
-				System.out.println("Token3333: " + token + " Lexeme: " + lexeme);
+				System.out.println("Token: " + token + " Lexeme: " + lexeme);
 				if(!lexeme.equals(";")) {
 					x--;
 					error(";");
