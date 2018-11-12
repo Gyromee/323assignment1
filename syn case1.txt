@@ -2,5 +2,6 @@ $$
      Real a,b,;     
      while ( a =^ b ) 
         {  
+        a == b ++ b
         }
  $$
