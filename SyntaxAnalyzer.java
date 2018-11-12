@@ -401,6 +401,7 @@ public void start() throws FileNotFoundException, IOException {
 		Statement();
 		if(isEmpty == true) 
 			return;
+		
 		Statement_List_Prime();
 	}
 
@@ -408,7 +409,6 @@ public void start() throws FileNotFoundException, IOException {
 	{
 
 		output.add("<Statement> ::=   <Compound>  |  <Assign>  |   <If>  |  <Return>   | <Print>   |   <Scan>   |  <While>");
-
 		lex();
 		if (lexeme.equals("{")) {
 			output.add("");
@@ -418,7 +418,7 @@ public void start() throws FileNotFoundException, IOException {
 		}
 		else if (token.matches("^Identifier.*")) {
 			output.add("");
-	     	output.add("TokenAAAAAAAAA: " + token + " Lexeme: " + lexeme);
+	     	output.add("Token: " + token + " Lexeme: " + lexeme);
 	     	Assign();
 		}
 		else if (lexeme.equals("if")){
@@ -517,6 +517,7 @@ public void start() throws FileNotFoundException, IOException {
 			output.add("");
 			output.add("Token: " + token + " Lexeme: " + lexeme);
 			Statement();
+			lex();
 			if(lexeme.equals("ifend")) {
 				output.add("Token: " + token + " Lexeme: " + lexeme);
 				return;
@@ -660,6 +661,19 @@ public void start() throws FileNotFoundException, IOException {
 		}
 		output.add("");
 		output.add("Token: " + token + " Lexeme: " + lexeme);
+		lex();
+		if(lexeme.equals("$$")) {
+			x--;
+			isEmpty = true;
+			return;
+		}
+		else {
+			x--;
+			Empty();
+			return;
+		}
+
+			
 
 	}
 	
