@@ -108,7 +108,7 @@ public class LexicalAnalyzer {
 	    			}
 
     				//Incase split string is only Separators and/or operators
-    			    else if(splitLine[i].matches("[(\\$\\$)|\\(|\\)|\\{|\\}|;|,|:\\=\\\\^><\\\\*\\\\+\\\\-\\\\/\\[\\*]+")){
+    				  else if(splitLine[i].matches("[(\\$\\$)|\\(|\\)|\\{|\\}|;|,|:\\=\\\\^><\\\\*\\\\+-\\\\-\\\\/\\[\\*]+")){
     					currentState = 1;
     					IdAndKeyWordFSM(charString);
     					//output.add(new String[] {"Separator        ", splitLine[i], lineNumberString});				

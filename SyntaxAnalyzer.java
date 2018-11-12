@@ -20,6 +20,7 @@ public class SyntaxAnalyzer {
 	private boolean isEmpty = false;
 	private ArrayList<String[]> tokensAndLexeme= new ArrayList<String[]>();
 	private ArrayList<String> output = new ArrayList<String>();
+	private boolean indexOut = false;
 	public SyntaxAnalyzer(String filename, LexicalAnalyzer lexical){
 		this.filename=filename;
 		this.lexical = lexical;
@@ -60,12 +61,17 @@ public void start() throws FileNotFoundException, IOException {
         System.exit(0);;
 	}
 	private void lex() {
+		if(indexOut == false){
 	    String temp[] = tokensAndLexeme.get(x);
 	    token = temp[0];
 	    lexeme = temp[1];
 	    lineNumber = temp[2];
 	    
 	    x++;
+	    if(x == tokensAndLexeme.size()) {
+	    	indexOut = true;
+	    	}
+		}    
 	}
 	private void error(String expectedString) {
         output.add("Error, expected a " + expectedString + " on line " + lineNumber + ".");
@@ -722,9 +728,10 @@ public void start() throws FileNotFoundException, IOException {
     	lex();
         if(lexeme.equals("+")) {
         	lex();
-        	if(lexeme.equals("+"))
+        	if(lexeme.equals("+") || lexeme.equals("-") || lexeme.equals("*") || lexeme.equals("/"))
         	{
-        		error("Detected an extra + operator");
+        		x--;
+        		error("Detected an extra + or - or * or / operator");
         	}
         	else {
         		x--;
@@ -735,9 +742,10 @@ public void start() throws FileNotFoundException, IOException {
         }
         else if(lexeme.equals("-")) {
         	lex();
-        	if(lexeme.equals("-"))
+        	if(lexeme.equals("+") || lexeme.equals("-") || lexeme.equals("*") || lexeme.equals("/"))
         	{
-        		error("Detected an extra - operator");
+        		x--;
+        		error("Detected an extra + or - or * or / operator");
         	}
         	else {
         		x--;
@@ -774,9 +782,10 @@ public void start() throws FileNotFoundException, IOException {
         	output.add("Token: " + token + " Lexeme: " + lexeme);
         	lex();
         	
-        	if(lexeme.equals("*"))
+        	if(lexeme.equals("+") || lexeme.equals("-") || lexeme.equals("*") || lexeme.equals("/"))
         	{
-        		error("Detected an extra * operator");
+        		x--;
+        		error("Detected an extra + or - or * or / operator");
         	}
         	else {
         		--x;
@@ -791,9 +800,10 @@ public void start() throws FileNotFoundException, IOException {
         	output.add("");
          	output.add("Token: " + token + " Lexeme: " + lexeme);
           	lex();
-        	if(lexeme.equals("/"))
+          	if(lexeme.equals("+") || lexeme.equals("-") || lexeme.equals("*") || lexeme.equals("/"))
         	{
-        		error("Detected an extra / operator");
+        		x--;
+        		error("Detected an extra + or - or * or / operator");
         	}
         	else {
         		
