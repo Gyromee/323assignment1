@@ -11,7 +11,6 @@ public class SyntaxAnalyzer {
 	private String filename;
 	private String line;
 	private String[] splitLine = null;
-	private char[] charString;
 	private String lineNumber = "";
 	private LexicalAnalyzer lexical;
 	private String lexeme = "";
@@ -35,7 +34,9 @@ public void start() throws FileNotFoundException, IOException {
 	    	BufferedWriter wr = new BufferedWriter(new FileWriter("syntaxResult.txt"));
 	    	
 	    	//Checks if there are any invalid tokens in our text file
+	    	//if there were, write to a new file and write where it found the invalid and what token it was
 	    	 while((line = br.readLine())!= null) {
+	    		 // trims the spaces in each line, making them index 0 and 1
 	 	    	splitLine = line.trim().split("\\s+");
 	    		if(splitLine[0].matches("Invalid")) {
 	    			output.add("Detected an Invalid Token on line " + lexical.getLineNumber() + " for " + splitLine[1]);
@@ -44,23 +45,29 @@ public void start() throws FileNotFoundException, IOException {
 	    	 }
 
   	 	    		    	
-		
+		//call our text file to grab the next token and lexeme
 		lex();
+		//Begin syntax analyzer
 		Rat18F();
+		//Write to the new file
 		writeToFile(wr);
 		}
 
 		
 		
 	}
+	//Writes to a new file 
 	private void writeToFile(BufferedWriter wr) throws IOException {
+		
 		for (String row : output) {
             wr.write(row +  System.lineSeparator());
         }
         wr.close();
         System.exit(0);;
 	}
+	//Grabs the next token and lexeme
 	private void lex() {
+		//this if statement makes it so we won't get index out of bounds 
 		if(indexOut == false){
 	    String temp[] = tokensAndLexeme.get(x);
 	    token = temp[0];
@@ -73,6 +80,7 @@ public void start() throws FileNotFoundException, IOException {
 	    	}
 		}    
 	}
+	//prints out an error with an expected string
 	private void error(String expectedString) {
         output.add("Error, expected a " + expectedString + " on line " + lineNumber + ".");
         output.add("");
@@ -83,23 +91,28 @@ public void start() throws FileNotFoundException, IOException {
         output.add("");
        // x++;
     }
-	
+	//The beginning of the rat18F function
 	public void Rat18F(){
 		output.add("Token: " + token + " Lexeme: " + lexeme);
 		output.add("<Rat18F>  ::=   <Opt Function Definitions>");
+		//goes to this first
 		Opt_Function_Definitions();
+		
 		lex();
+		//if the next lexeme does not equal $$, then error out because it needs a $$
 		if (!lexeme.equals("$$")) {
 			x--;
 			error("$$");
 		}
 		output.add("");
 		output.add("Token: " + token + " Lexeme: " + lexeme);
+		//if it did contain $$, then go to this function
 		Opt_Declaration_List();
-		
+		//next function and last thing in the rat18F
 		Statement_List();
 		
 		lex();
+		//We are done with the syntax. If the file did not end with a $$, then there must be an error
 		if (!lexeme.equals("$$")) {
 			x--;
 			error("$$");
@@ -108,10 +121,11 @@ public void start() throws FileNotFoundException, IOException {
 		output.add("Token: " + token + " Lexeme: " + lexeme);
 	}
 	
-
+	
 	public void Opt_Function_Definitions(){
 		output.add("<Opt Function Definitions> ::= <Function Definitions> ");
 		Function_Definitions();
+		//If empty is called, there was no function definition and then return
 		Empty();
 	}
 	
@@ -124,6 +138,7 @@ public void start() throws FileNotFoundException, IOException {
 	public void Function_Definition_Prime()
 	{
 		output.add("<Function Definitions Prime> ::= <Function> <Function Definitions Prime> | <Empty>");
+		//will recursively call this if it was not empty
 		if(isEmpty == false) {
 			Function();
 			Function_Definition_Prime();
@@ -146,7 +161,7 @@ public void start() throws FileNotFoundException, IOException {
 		}
 		
 		lex();
-		
+		//if its not an identifer as expected then there must be an error
 		if(!token.matches("^Identifier.*")) {
 			x--;
 			error();
@@ -157,7 +172,7 @@ public void start() throws FileNotFoundException, IOException {
 		//Print token and Lexeme
 		output.add("");
 		output.add("Token: " + token + " Lexeme: " + lexeme);
-		
+		//Following the rule above, it needs to have a parenthesis
 		lex();
 		if(!lexeme.equals("(")) {
 			x--;
@@ -167,7 +182,7 @@ public void start() throws FileNotFoundException, IOException {
 		output.add("Token: " + token + " Lexeme: " + lexeme);
 		
 		Opt_Parameter_List();
-		
+		// Needs to end with a parenthesis
 		lex();
 		if(!lexeme.equals(")")){
 			x--;
@@ -176,12 +191,12 @@ public void start() throws FileNotFoundException, IOException {
 		output.add("");
 		output.add("Token: " + token + " Lexeme: " + lexeme);
 		output.add("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>  <Body>");
-
+		//Optional decl list can be blank because its optional
 		Opt_Declaration_List();
 		output.add("Token: " + token + " Lexeme: " + lexeme);
 
 		output.add("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>  <Body>");
-
+		//call body 
 		Body();
 		
 	}
@@ -204,11 +219,12 @@ public void start() throws FileNotFoundException, IOException {
 	public void Parameter_List_Prime() {
 		output.add("<Parameter List Prime>  ::=  , <Parameter> <Parameter List Prime>    |     <Empty>");
 		lex();
-		
+		//By the rule, it must have a comma. if not then there was no more parameter. 
 		if(!lexeme.equals(",")) {
 			x--;
 			return;
 		}
+		//if it does equal , then we know there are more parameters
 		Parameter();
 		if(isEmpty == true) {
 			x--;
@@ -227,7 +243,7 @@ public void start() throws FileNotFoundException, IOException {
 			return;
 		}
 		lex();
-		
+		// By the rule it needs the colon. if there is no colon we error it out
 		if(!lexeme.equals(":")) {
 			x--;
 			error(":");
@@ -249,6 +265,7 @@ public void start() throws FileNotFoundException, IOException {
 	public void Qualifier() {
 		output.add("<Qualifier> ::= int     |    boolean    |  real ");
 		lex();
+		//Following the rule above, if it doesn't have any of those qualifiers we return
 		if(lexeme.equals("int") || lexeme.equals("boolean") || lexeme.equals("real")) {
 			output.add("");
 			output.add("Token: " + token + " Lexeme: " + lexeme);
@@ -263,6 +280,7 @@ public void start() throws FileNotFoundException, IOException {
 	
 	public void Body() {
 		output.add("<Body>  ::=  {  < Statement List>  }");
+		// by the rule above, it needs to start with { or error
 		if(!lexeme.equals("{")) {
 			x--;
 			error("{");
@@ -273,7 +291,7 @@ public void start() throws FileNotFoundException, IOException {
 		x++;
 
 		lex();
-		
+		// by the rule above, it needs to start with } or error
 		if(!lexeme.equals("}")) {
 			x--;
 			error("}");
@@ -303,6 +321,7 @@ public void start() throws FileNotFoundException, IOException {
 		
 		lex();
 		output.add("Token: " + token + " Lexeme: " + lexeme);
+		// by the rule above, if it didnt end with a semicolon then keep recursively calling the prime function
 		if(!lexeme.equals(";")) {
 			x--;
 			error(";");
@@ -349,7 +368,7 @@ public void start() throws FileNotFoundException, IOException {
 	{
 		output.add("<IDs> ::=     <Identifier> <IDs Prime>");
 		lex();
-		
+		//if its not an identifer then we kick it out
 		if(!token.matches("^Identifier.*")) {
 			isEmpty = true;
 			return;
@@ -369,6 +388,7 @@ public void start() throws FileNotFoundException, IOException {
 	{
 		lex();
 		output.add("<IDs Prime> ::=	, <Identifier> <IDs Prime> | <Empty>");
+		//if there is no comma then it is empty. no more Ids
 		if(!lexeme.equals(",")){
 			isEmpty = true;
 			x--;
@@ -416,12 +436,14 @@ public void start() throws FileNotFoundException, IOException {
 
 		output.add("<Statement> ::=   <Compound>  |  <Assign>  |   <If>  |  <Return>   | <Print>   |   <Scan>   |  <While>");
 		lex();
+		//if { then go to compound 
 		if (lexeme.equals("{")) {
 			output.add("");
 	     	output.add("Token: " + token + " Lexeme: " + lexeme);
 			Compound();
 			
 		}
+		//if there was an identifier it must be assign then go to compound 
 		else if (token.matches("^Identifier.*")) {
 			output.add("");
 	     	output.add("Token: " + token + " Lexeme: " + lexeme);
@@ -467,6 +489,7 @@ public void start() throws FileNotFoundException, IOException {
 		output.add("<Compound> ::=   {  <Statement List>  } ");
 		Statement_List();
 		lex();
+		//at the end of compound it must be a } or it will be error
 		if(!lexeme.equals("}")) {
 			x--;
 			error("}");
@@ -479,6 +502,7 @@ public void start() throws FileNotFoundException, IOException {
 	{
 		output.add("<Assign> ::=     <Identifier> = <Expression> ;");
 		lex();
+		//since we are in assign, we need to assign something. if there is no equal, we cant assign therefore error
 		if(!lexeme.equals("=")) {
 			x--;
 			error("=");
@@ -497,12 +521,14 @@ public void start() throws FileNotFoundException, IOException {
 	{
 		output.add("<If> ::= if (<Condition>) <Statement> <If Prime>");
 		lex();
+		//following rule above, we need a parenthesis
 		if(!lexeme.equals("(")) {
 			x--;
 			error("(");
 		}
 		Condition();
 		lex();
+		//following rule above, we need to have end parenthesis after running those functions
 		if(!lexeme.equals(")")) {
 			x--;
 			error(")");
@@ -515,15 +541,18 @@ public void start() throws FileNotFoundException, IOException {
 	{
 		output.add("<If Prime> ::= ifend |	else  <Statement>  ifend");
 		lex();
+		//if there was ifend then we are done with if statement
 		if(lexeme.equals("ifend")) {
 			output.add("Token: " + token + " Lexeme: " + lexeme);
 			return;
 		}
+		//if it did mean else
 		else if (lexeme.equals("else")) {
 			output.add("");
 			output.add("Token: " + token + " Lexeme: " + lexeme);
 			Statement();
 			lex();
+			//check if it is ifend. if not then there must be error
 			if(lexeme.equals("ifend")) {
 				output.add("Token: " + token + " Lexeme: " + lexeme);
 				return;
@@ -552,6 +581,7 @@ public void start() throws FileNotFoundException, IOException {
 	{
 		output.add("<Return Prime> ::= ; |  <Expression>;");
 		lex();
+		//if semicolon, then it marks the ending. return
 		if(lexeme.equals(";"))
 			return;
 		else {
@@ -573,6 +603,7 @@ public void start() throws FileNotFoundException, IOException {
 	public void Print() {
 		output.add("<Print> ::=    put ( <Expression>);");
 		lex();
+		//must have parenthesis
 		if(!lexeme.equals("(")) {
 			x--;
 			error("(");
@@ -590,12 +621,14 @@ public void start() throws FileNotFoundException, IOException {
 		}
 		
 		lex();
+		//must have parenthesis
 		if(!lexeme.equals(")")) {
 			x--;
 			error(")");
 		}
 
 		lex();
+		//must have semicolon
 		if(!lexeme.equals(";")) {
 			x--;
 			error(";");
@@ -608,6 +641,7 @@ public void start() throws FileNotFoundException, IOException {
 	public void Scan() {
 		output.add("<Scan> ::=    get ( <IDs> );");
 		lex();
+		//must have parenthesis
 		if(!lexeme.equals("(")) {
 			x--;
 			error("(");
@@ -622,6 +656,7 @@ public void start() throws FileNotFoundException, IOException {
 		}
 		
 		lex();
+		//must have parenthesis
 		if(!lexeme.equals(")")) {
 			x--;
 			error(")");
@@ -632,6 +667,7 @@ public void start() throws FileNotFoundException, IOException {
 		output.add("Token: " + token + " Lexeme: " + lexeme);
 		
 		lex();
+		//must have semicolon
 		if(!lexeme.equals(";")) {
 			x--;
 			error(";");
@@ -668,6 +704,7 @@ public void start() throws FileNotFoundException, IOException {
 		output.add("");
 		output.add("Token: " + token + " Lexeme: " + lexeme);
 		lex();
+		//check after whileend is $$, if not then there are most statements we must find
 		if(lexeme.equals("$$")) {
 			x--;
 			isEmpty = true;
@@ -686,6 +723,7 @@ public void start() throws FileNotFoundException, IOException {
 	public void Condition()
 	{
 		output.add("<Condition> ::=     <Expression>  <Relop>   <Expression>");
+		// calls each function with respect to the above rule
 		Expression();
 		lex();
 		Relop();
@@ -695,7 +733,7 @@ public void start() throws FileNotFoundException, IOException {
 	
     private void Relop() {
     	output.add("<Relop> ::=        ==   |   ^=    |   >     |   <    |   =>    |   =<");
-
+    	//checks each relop
     	if(lexeme.equals("==")) return;
     	else if(lexeme.equals("^=")) return;
     	else if(lexeme.equals(">")) return;
@@ -728,6 +766,7 @@ public void start() throws FileNotFoundException, IOException {
     	lex();
         if(lexeme.equals("+")) {
         	lex();
+        	//checks if there are multiple op signs that werent caught in our lexical analyzer
         	if(lexeme.equals("+") || lexeme.equals("-") || lexeme.equals("*") || lexeme.equals("/"))
         	{
         		x--;
@@ -742,6 +781,7 @@ public void start() throws FileNotFoundException, IOException {
         }
         else if(lexeme.equals("-")) {
         	lex();
+        	//checks if there are multiple op signs that werent caught in our lexical analyzer
         	if(lexeme.equals("+") || lexeme.equals("-") || lexeme.equals("*") || lexeme.equals("/"))
         	{
         		x--;
@@ -781,7 +821,7 @@ public void start() throws FileNotFoundException, IOException {
         	output.add("");
         	output.add("Token: " + token + " Lexeme: " + lexeme);
         	lex();
-        	
+        	//checks if there are multiple op signs that werent caught in our lexical analyzer
         	if(lexeme.equals("+") || lexeme.equals("-") || lexeme.equals("*") || lexeme.equals("/"))
         	{
         		x--;
@@ -800,6 +840,7 @@ public void start() throws FileNotFoundException, IOException {
         	output.add("");
          	output.add("Token: " + token + " Lexeme: " + lexeme);
           	lex();
+          //checks if there are multiple op signs that werent caught in our lexical analyzer
           	if(lexeme.equals("+") || lexeme.equals("-") || lexeme.equals("*") || lexeme.equals("/"))
         	{
         		x--;
@@ -845,7 +886,7 @@ public void start() throws FileNotFoundException, IOException {
 
   
         lex();
-        //
+        //catching if statements for rule above
         if(token.matches("^Identifier.*")) {
             output.add("");
             output.add("Token: " + token + " Lexeme: " + lexeme);
@@ -901,7 +942,7 @@ private void Identifier_Prime() {
         
         lex();
 
-        
+        //if no parenthesis, check if ther is comma, else then there are more IDS
         if(!lexeme.equals( "(")) {
         	if(lexeme.equals(",")) {
         		output.add("");
