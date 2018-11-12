@@ -1,0 +1,27 @@
+function add (a,b : reall)
+{
+	return a + b;	
+}
+
+$$
+	real c, d
+	int num;
+	boolean yes;
+	while (yes == true)
+	{
+		if(num ^= 10);
+		{	
+			s
+			put(add(c,d));
+		}
+		else
+		{
+			yes = false;
+		}
+		ifend
+		num = num + 1;
+	}
+	whileend
+
+	put (add(c,d));
+$$
