@@ -36,6 +36,8 @@ import javax.swing.*;
 		    			LexicalAnalyzer lexical = new LexicalAnalyzer(input);
 		    		    try {
 							lexical.start();
+							SyntaxAnalyzer syntax = new SyntaxAnalyzer("lexicalResult.txt", lexical);
+						 	syntax.start();
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}
@@ -47,11 +49,8 @@ import javax.swing.*;
 		    	
 		    }
 	    public static void main(String[] args) throws FileNotFoundException, IOException {
-	       new Driver().setVisible(true);
+	        new Driver().setVisible(true);
 
-	    }
-	    
-	    
+	    	}
 	}
-
 
