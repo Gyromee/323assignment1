@@ -234,8 +234,8 @@ public void start() throws FileNotFoundException, IOException {
 		
 		Qualifier();
 		if(isEmpty == true) {
-			output.add("Expecting a qualifier on line: " + lineNumber);
-			System.exit(0);
+			error("Expecting a qualifier ");
+			
 		}
 
 	}
