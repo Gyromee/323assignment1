@@ -5,8 +5,11 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Map;
+import java.util.Set;
 import java.util.Hashtable;
+import java.util.LinkedHashMap;
 
 
 public class SyntaxAnalyzer {
@@ -28,8 +31,11 @@ public class SyntaxAnalyzer {
 	private static final int address = 0;
 	private static final int op = 1;
 	private static final int oprnd = 2;
-	private Hashtable<String, Integer> symbolTable = new Hashtable<String, Integer>();
+	private Hashtable<String, Integer> symbolTable2 = new Hashtable<String, Integer>();
+	private LinkedHashMap<String, Integer> symbolTable = new LinkedHashMap<String, Integer>();
+	private String[] symbolTableTypes = new String[1000];
 	private int memoryAddress = 5000;
+	private String save;
 	
 	public SyntaxAnalyzer(String filename, LexicalAnalyzer lexical){
 		this.filename=filename;
@@ -62,8 +68,15 @@ public class SyntaxAnalyzer {
 		Rat18F();
 		//Write to the new file
 		writeToFile(wr);
+		//Write symbol table to new file
+		try {
+			output_symbolTable();
+		} catch (Exception e) {			
+			e.printStackTrace();
 		}
-
+		System.exit(0);;
+	}
+		
 		
 		
 	}
@@ -74,7 +87,7 @@ public class SyntaxAnalyzer {
             wr.write(row +  System.lineSeparator());
         }
         wr.close();
-        System.exit(0);;
+        
 	}
 	
 	//Grabs the next token and lexeme
@@ -88,10 +101,19 @@ public class SyntaxAnalyzer {
 		    
 		    //If token is an Identifier, then add it to the symbol table
 		    if(token.matches("^Identifier.*")) {
-		    	symbolTable.put(token, memoryAddress);
-		    	memoryAddress++;
+		    	
+		    	if (!symbolTable.containsKey(lexeme)) {
+		    		symbolTable.put(lexeme, memoryAddress);
+		    		
+		    		memoryAddress++;
+		    	}
+		    	
+		    	System.out.println("Token: " + lexeme + ",    Address: " + symbolTable.get(lexeme));
+		    	
+		    	
+		    	
 			}
-		    
+		    //System.out.println("Token: " + lexeme + "         " + x);
 		    //If there are no more symbols and the last one was not $$, then error
 		    x++;
 		    if(x == tokensAndLexeme.size()) {
@@ -299,6 +321,7 @@ public class SyntaxAnalyzer {
 			output.add("");
 			output.add("Token: " + token + " Lexeme: " + lexeme);
 			output.add("<Qualifier> ::= int     |    boolean    |  real ");
+			
 		}
 		else{
 			isEmpty = true;
@@ -330,7 +353,7 @@ public class SyntaxAnalyzer {
 
 	}
 	
-	public void Opt_Declaration_List() {
+	public void Opt_Declaration_List() {	
 		output.add("<Opt Declaration List> ::= <Declaration List>   |    <Empty>");
 		Declaration_List();
 		if(isEmpty == true) {
@@ -402,7 +425,11 @@ public class SyntaxAnalyzer {
 			isEmpty = true;
 			return;
 		}
-			
+		else
+			gen_instr("PUSHM",  get_address(lexeme));
+		
+		
+	      
 		output.add("");
 		output.add("Token: " + token + " Lexeme: " + lexeme);
 		output.add("<IDs> ::=     <Identifier> <IDs Prime>");
@@ -537,8 +564,15 @@ public class SyntaxAnalyzer {
 			error("=");
 		}
 		
+		
+		save = lexeme;
 		Expression();
 		lex();
+		if(token.matches("^Identifier.*")) {
+			System.out.println(get_address(save));
+			gen_instr("POPM", get_address(save));
+		}
+		
 		if(!lexeme.equals(";")) {
 			x--;
 			error(";");
@@ -804,6 +838,7 @@ public class SyntaxAnalyzer {
         	else {
         		x--;
         		Term();
+        		gen_instr("ADD", "nil");
                 Expression_Prime();
         	}
 
@@ -819,6 +854,7 @@ public class SyntaxAnalyzer {
         	else {
         		x--;
         		Term();
+        		gen_instr("SUB", "nil");
                 Expression_Prime();
         	}
 
@@ -860,6 +896,7 @@ public class SyntaxAnalyzer {
         		--x;
            	
                 Factor();
+                gen_instr("MUL", "nil");
                 Term_Prime();
         	}
         	
@@ -879,6 +916,7 @@ public class SyntaxAnalyzer {
         		
         		x--;
                 Factor();
+                gen_instr("DIV", "nil");
                 Term_Prime();
         	}
         }
@@ -919,7 +957,9 @@ public class SyntaxAnalyzer {
         if(token.matches("^Identifier.*")) {
             output.add("");
             output.add("Token: " + token + " Lexeme: " + lexeme);
+            gen_instr("PUSHM",  get_address(lexeme));
             Identifier_Prime();
+            
             if(isEmpty == true)
                 return;
         }
@@ -971,7 +1011,7 @@ public class SyntaxAnalyzer {
         
         lex();
 
-        //if no parenthesis, check if ther is comma, else then there are more IDS
+        //if no parenthesis, check if there is comma, else then there are more IDS
         if(!lexeme.equals( "(")) {
         	if(lexeme.equals(",")) {
         		output.add("");
@@ -1006,6 +1046,7 @@ public class SyntaxAnalyzer {
                 x--;
                 error(")");
             }
+
         }
     }
     
@@ -1018,9 +1059,12 @@ public class SyntaxAnalyzer {
     
     
     //Gets the memory address for an identifier
-    public int get_address(String id) {
+    public String get_address(String id) {
+    	//System.out.println("id is: " + id);
     	int address = symbolTable.get(id);
-    	return address;
+    	String temp = "";
+    	temp += address;
+    	return temp;
     }
     
     //Generates entry for instruction table
@@ -1028,9 +1072,28 @@ public class SyntaxAnalyzer {
     	String temp = "";
     	temp += instr_address;
     	String[] temp2 = {temp, op, oprnd};
-    	instr_table.set(instr_address, temp2);
+    	instr_table.add(instr_address, temp2);
+    	
     	instr_address++;
     }
+    
+    public void output_symbolTable() throws Exception {
+    	BufferedWriter wr = new BufferedWriter(new FileWriter("Symbol Table.txt"));    	
+    	Set<String> keys = symbolTable.keySet();
+    	String formatStr = "%-20s %-15s %-15s%n";    	
+    	    wr.write("Identifier       MemoryLocation       Type");
+    	    wr.newLine();
+    	for (String key: keys) {    		
+    		wr.write(String.format(formatStr ,key, symbolTable.get(key), "integer" ));
+    	}
+    	wr.close();
+    }
+    
+//    public void back_patch(jump_addr) {
+//	    addr = pop_jumpstack();
+//	    Instr_table[addr].oprn = jump_addr;
+//    }
+
 	
 
 	
