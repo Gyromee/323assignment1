@@ -100,6 +100,7 @@ public void start() throws FileNotFoundException, IOException {
 		
 		lex();
 		//if the next lexeme does not equal $$, then error out because it needs a $$
+		
 		if (!lexeme.equals("$$")) {
 			x--;
 			error("$$");
@@ -138,6 +139,9 @@ public void start() throws FileNotFoundException, IOException {
 	public void Function_Definition_Prime()
 	{
 		output.add("<Function Definitions Prime> ::= <Function> <Function Definitions Prime> | <Empty>");
+		output.add("");
+		output.add("Token: " + token + " Lexeme: " + lexeme);
+		
 		//will recursively call this if it was not empty
 		if(isEmpty == false) {
 			Function();
@@ -198,7 +202,16 @@ public void start() throws FileNotFoundException, IOException {
 		output.add("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>  <Body>");
 		//call body 
 		Body();
-		
+		lex();
+		if(lexeme.equals("function")) {
+			isEmpty = false;
+			
+			return;
+		}
+		else {
+			x--;
+			return;
+		}
 	}
 	
 	public void Opt_Parameter_List() {
