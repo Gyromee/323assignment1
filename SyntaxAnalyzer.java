@@ -5,6 +5,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Hashtable;
+
 
 public class SyntaxAnalyzer {
 
@@ -20,6 +23,14 @@ public class SyntaxAnalyzer {
 	private ArrayList<String[]> tokensAndLexeme= new ArrayList<String[]>();
 	private ArrayList<String> output = new ArrayList<String>();
 	private boolean indexOut = false;
+	private int instr_address = 0;
+	private ArrayList<String[]> instr_table = new ArrayList<String[]>();
+	private static final int address = 0;
+	private static final int op = 1;
+	private static final int oprnd = 2;
+	private Hashtable<String, Integer> symbolTable = new Hashtable<String, Integer>();
+	private int memoryAddress = 5000;
+	
 	public SyntaxAnalyzer(String filename, LexicalAnalyzer lexical){
 		this.filename=filename;
 		this.lexical = lexical;
@@ -28,7 +39,7 @@ public class SyntaxAnalyzer {
 		
 	}
 	
-public void start() throws FileNotFoundException, IOException {
+	public void start() throws FileNotFoundException, IOException {
 		
 		try (BufferedReader br = new BufferedReader(new FileReader(filename))){
 	    	BufferedWriter wr = new BufferedWriter(new FileWriter("syntaxResult.txt"));
@@ -65,19 +76,27 @@ public void start() throws FileNotFoundException, IOException {
         wr.close();
         System.exit(0);;
 	}
+	
 	//Grabs the next token and lexeme
 	private void lex() {
 		//this if statement makes it so we won't get index out of bounds 
 		if(indexOut == false){
-	    String temp[] = tokensAndLexeme.get(x);
-	    token = temp[0];
-	    lexeme = temp[1];
-	    lineNumber = temp[2];
-	    
-	    x++;
-	    if(x == tokensAndLexeme.size()) {
-	    	indexOut = true;
-	    	}
+		    String temp[] = tokensAndLexeme.get(x);
+		    token = temp[0];
+		    lexeme = temp[1];
+		    lineNumber = temp[2];
+		    
+		    //If token is an Identifier, then add it to the symbol table
+		    if(token.matches("^Identifier.*")) {
+		    	symbolTable.put(token, memoryAddress);
+		    	memoryAddress++;
+			}
+		    
+		    //If there are no more symbols and the last one was not $$, then error
+		    x++;
+		    if(x == tokensAndLexeme.size()) {
+		    	indexOut = true;
+		    	}
 		}    
 	}
 	//prints out an error with an expected string
@@ -100,7 +119,6 @@ public void start() throws FileNotFoundException, IOException {
 		
 		lex();
 		//if the next lexeme does not equal $$, then error out because it needs a $$
-		
 		if (!lexeme.equals("$$")) {
 			x--;
 			error("$$");
@@ -139,9 +157,6 @@ public void start() throws FileNotFoundException, IOException {
 	public void Function_Definition_Prime()
 	{
 		output.add("<Function Definitions Prime> ::= <Function> <Function Definitions Prime> | <Empty>");
-		output.add("");
-		output.add("Token: " + token + " Lexeme: " + lexeme);
-		
 		//will recursively call this if it was not empty
 		if(isEmpty == false) {
 			Function();
@@ -203,15 +218,16 @@ public void start() throws FileNotFoundException, IOException {
 		//call body 
 		Body();
 		lex();
-		if(lexeme.equals("function")) {
-			isEmpty = false;
-			
-			return;
-		}
-		else {
-			x--;
-			return;
-		}
+        if(lexeme.equals("function")) {
+            isEmpty = false;
+            
+            return;
+        }
+        else {
+            x--;
+            return;
+        }
+		
 	}
 	
 	public void Opt_Parameter_List() {
@@ -951,7 +967,7 @@ public void start() throws FileNotFoundException, IOException {
     }
     
     //37
-private void Identifier_Prime() {
+    private void Identifier_Prime() {
         
         lex();
 
@@ -998,6 +1014,22 @@ private void Identifier_Prime() {
     	output.add("<Empty>   ::= E");
     	isEmpty = false;
         return;
+    }
+    
+    
+    //Gets the memory address for an identifier
+    public int get_address(String id) {
+    	int address = symbolTable.get(id);
+    	return address;
+    }
+    
+    //Generates entry for instruction table
+    public void gen_instr(String op, String oprnd) {
+    	String temp = "";
+    	temp += instr_address;
+    	String[] temp2 = {temp, op, oprnd};
+    	instr_table.set(instr_address, temp2);
+    	instr_address++;
     }
 	
 
