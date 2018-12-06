@@ -39,6 +39,8 @@ public class SyntaxAnalyzer {
 	private ArrayList<Integer> jumpstack = new ArrayList<Integer>();
 	String saveOp = "";
 	String saveScan = "";
+	int duplicatePush;
+	
 	
 	public SyntaxAnalyzer(String filename, LexicalAnalyzer lexical){
 		this.filename=filename;
@@ -872,6 +874,7 @@ public class SyntaxAnalyzer {
     	output.add("<Expression>  ::=    <Term> <Expression Prime>");
     	output.add("");
     	output.add("Token: " + token + " Lexeme: " + lexeme);
+    	duplicatePush = 0;
         Term();
         Expression_Prime();
         if(isEmpty == true) {
@@ -994,6 +997,7 @@ public class SyntaxAnalyzer {
     	
     	if(token.matches("^Identifier.*")) {
     		gen_instr("PUSHM",  get_address(lexeme));
+    		duplicatePush = 1;
     	}
     	lex();
         if(lexeme.equals("-")) {
@@ -1020,7 +1024,12 @@ public class SyntaxAnalyzer {
         if(token.matches("^Identifier.*")) {
             output.add("");
             output.add("Token: " + token + " Lexeme: " + lexeme);
-            gen_instr("PUSHM",  get_address(lexeme));
+            
+            if(duplicatePush < 1) {
+            	gen_instr("PUSHM",  get_address(lexeme)); 
+            	System.out.println("Duplicate push number: " + duplicatePush);
+            	duplicatePush++;
+            }
             Identifier_Prime();
             
             if(isEmpty == true)
