@@ -420,22 +420,23 @@ public class SyntaxAnalyzer {
 		}
 	}
 	
-	public void IDs()
-	{
+	public void IDs() {
 		output.add("<IDs> ::=     <Identifier> <IDs Prime>");
 		lex();
 		//if its not an identifer then we kick it out
+		System.out.println("IM IN IDs, and = " + lexeme);
 		if(!token.matches("^Identifier.*")) {
 			isEmpty = true;
 			return;
 		}
-		else
+		else {
 			gen_instr("PUSHM",  get_address(lexeme));
-		
+		}
 		
 	      
 		output.add("");
 		output.add("Token: " + token + " Lexeme: " + lexeme);
+		
 		output.add("<IDs> ::=     <Identifier> <IDs Prime>");
 		IDs_Prime();
 		if(isEmpty == true){
@@ -559,34 +560,37 @@ public class SyntaxAnalyzer {
 	}
 	
 	public void Assign()
-	{
-		output.add("<Assign> ::=     <Identifier> = <Expression> ;");
-		lex();
-		//since we are in assign, we need to assign something. if there is no equal, we cant assign therefore error
-		if(!lexeme.equals("=")) {
-			x--;
-			error("=");
-		}
-		
-		
-		save = lexeme;
-		Expression();
-		lex();
-		if(token.matches("^Identifier.*")) {
-			System.out.println(get_address(save));
-			gen_instr("POPM", get_address(save));
-		}
-		
-		if(!lexeme.equals(";")) {
-			x--;
-			error(";");
-		}
-		
-	}
+    {
+        output.add("<Assign> ::=     <Identifier> = <Expression> ;");
+        save = lexeme;
+        lex();
+        //since we are in assign, we need to assign something. if there is no equal, we cant assign therefore error
+        if(!lexeme.equals("=")) {
+            x--;
+            error("=");
+        }
+        
+        
+        Expression();
+        
+        
+        gen_instr("POPM", get_address(save));
+        
+        lex();
+        
+        if(!lexeme.equals(";")) {
+            x--;
+            error(";");
+        }
+        
+        
+    }
 	
 	public void If()
 	{
+		
 		output.add("<If> ::= if (<Condition>) <Statement> <If Prime>");
+		int addr = instr_address;
 		lex();
 		//following rule above, we need a parenthesis
 		if(!lexeme.equals("(")) {
@@ -601,11 +605,12 @@ public class SyntaxAnalyzer {
 			error(")");
 		}
 		Statement();
+		back_patch(instr_address);
 		If_Prime();
 	}
 	
-	public void If_Prime()
-	{
+	public void If_Prime(){
+		
 		output.add("<If Prime> ::= ifend |	else  <Statement>  ifend");
 		lex();
 		//if there was ifend then we are done with if statement
@@ -744,53 +749,59 @@ public class SyntaxAnalyzer {
 	}
 	
 	public void While() {
-		output.add("<While> ::=  while ( <Condition>  )  <Statement>  whileend");
-		lex();
-		if(!lexeme.equals("(")) {
-			x--;
-			error("(");
-		}
-		Condition();
-		if(isEmpty == true) {
-			x--;
-			error();
-		}
-		
-		lex();
-		if(!lexeme.equals(")")) {
-			x--;
-			error(")");
-		}
-		Statement();
-		
-		lex();
-		if(!lexeme.equals("whileend")) {
-			x--;
-			error("whileend");
-		}
-		output.add("");
-		output.add("Token: " + token + " Lexeme: " + lexeme);
-		lex();
-		//check after whileend is $$, if not then there are most statements we must find
-		if(lexeme.equals("$$")) {
-			x--;
-			isEmpty = true;
-			return;
-		}
-		else {
-			x--;
-			Empty();
-			return;
-		}
-	}
+        output.add("<While> ::=  while ( <Condition>  )  <Statement>  whileend");
+        String addr = "";
+        addr += instr_address;
+        gen_instr("LABEL", "nil");
+
+        lex();
+        if(!lexeme.equals("(")) {
+            x--;
+            error("(");
+        }
+        Condition();
+        if(isEmpty == true) {
+            x--;
+            error();
+        }
+        
+        lex();
+        if(!lexeme.equals(")")) {
+            x--;
+            error(")");
+        }
+        Statement();
+        
+        gen_instr("JUMP", addr);
+        back_patch(instr_address);
+        
+        lex();
+        if(!lexeme.equals("whileend")) {
+            x--;
+            error("whileend");
+        }
+        output.add("");
+        output.add("Token: " + token + " Lexeme: " + lexeme);
+        lex();
+        //check after whileend is $$, if not then there are most statements we must find
+        if(lexeme.equals("$$")) {
+            x--;
+            isEmpty = true;
+            return;
+        }
+        else {
+            x--;
+            Empty();
+            return;
+        }
+    }
 	
-	public void Condition()
-	{
+	public void Condition(){
 		output.add("<Condition> ::=     <Expression>  <Relop>   <Expression>");
 		// calls each function with respect to the above rule
 		Expression();
 		lex();
-		Relop();
+		Relop();		
 		lex();
 		Expression();
 	}
@@ -798,12 +809,43 @@ public class SyntaxAnalyzer {
     private void Relop() {
     	output.add("<Relop> ::=        ==   |   ^=    |   >     |   <    |   =>    |   =<");
     	//checks each relop
-    	if(lexeme.equals("==")) return;
-    	else if(lexeme.equals("^=")) return;
-    	else if(lexeme.equals(">")) return;
-    	else if(lexeme.equals("<")) return;
-    	else if(lexeme.equals("=>")) return;
-    	else if(lexeme.equals("=<")) return;
+    	
+    	if(lexeme.equals("==")) { 
+    		gen_instr("EQU", "nil");
+    		push_jumpstack(instr_address);
+    		gen_instr("JUMPZ", "nil");
+    		return;
+    	}
+    	else if(lexeme.equals("^=")) { 
+    		gen_instr("NEQ", "nil");
+    		push_jumpstack(instr_address);
+    		gen_instr("JUMPZ", "nil");
+    		return;
+    	}
+    	else if(lexeme.equals(">")) { 
+    		gen_instr("GRT", "nil");
+    		push_jumpstack(instr_address);
+    		gen_instr("JUMPZ", "nil");
+    		return;
+    	}
+    	else if(lexeme.equals("<")) { 
+    		gen_instr("LES", "nil");
+    		push_jumpstack(instr_address);
+    		gen_instr("JUMPZ", "nil");
+    		return;
+    	}
+    	else if(lexeme.equals("=>")) { 
+    		gen_instr("GEQ", "nil");
+    		push_jumpstack(instr_address);
+    		gen_instr("JUMPZ", "nil");
+    		return;
+    	}
+    	else if(lexeme.equals("=<")) { 
+    		gen_instr("LEQ	", "nil");
+    		push_jumpstack(instr_address);
+    		gen_instr("JUMPZ", "nil");
+    		return;
+    	}
     	else {
     		x--;
     		error();
@@ -871,6 +913,7 @@ public class SyntaxAnalyzer {
     //33
     private void Term() {    
     	output.add("<Term>  ::= <Factor> <Term Prime>");
+    	System.out.println("IM IN TERM AND lexeme = " + lexeme);
         Factor();
         Term_Prime();        
         if(isEmpty == true) {
@@ -934,19 +977,23 @@ public class SyntaxAnalyzer {
     //35
     private void Factor() {
     	output.add("<Factor> ::=      -  <Primary>    |    <Primary>");
+    	System.out.println("IM IN FACTOR AND lexeme = " + lexeme);
+    	  
     	lex();
         if(lexeme.equals("-")) {
             Primary();
         	output.add("");
 	     	output.add("Token: " + token + " Lexeme: " + lexeme);
-        }
-        
+        }        
         else {
+        	  
         	x--;
             Primary();
             if(isEmpty == true)
             	return;
         }
+        
+      
     }
    
     private void Primary() {
@@ -959,6 +1006,7 @@ public class SyntaxAnalyzer {
             output.add("");
             output.add("Token: " + token + " Lexeme: " + lexeme);
             gen_instr("PUSHM",  get_address(lexeme));
+            System.out.println("IM IN PRIMARY  lexeme = " + lexeme);
             Identifier_Prime();
             
             if(isEmpty == true)
@@ -1016,7 +1064,7 @@ public class SyntaxAnalyzer {
         if(!lexeme.equals( "(")) {
         	if(lexeme.equals(",")) {
         		output.add("");
-            	output.add("Token: " + token + " Lexeme: " + lexeme);
+            	output.add("Token: " + token + " Lexeme: " + lexeme);            	
         		IDs();
         		 if(isEmpty == true) {
                      x--;
@@ -1078,6 +1126,7 @@ public class SyntaxAnalyzer {
     	instr_address++;
     }
     
+    //Output the symbol table in aligned columns
     public void output_symbolTable() throws Exception {
     	BufferedWriter wr = new BufferedWriter(new FileWriter("Symbol Table.txt"));    	
     	Set<String> keys = symbolTable.keySet();
@@ -1090,9 +1139,10 @@ public class SyntaxAnalyzer {
     	wr.close();
     }
     
+    
+    //Output the instr_table in aligned columns
     public void output_instr_table() throws Exception {
     	BufferedWriter wr = new BufferedWriter(new FileWriter("INSTR TABLE.txt"));    	
-    	
     	String formatStr = "%-20s %-15s %-15s%n";     	
     	for(String[] table_entry : instr_table) {
     		wr.write(String.format(formatStr, table_entry[0], table_entry[1], table_entry[2]));
@@ -1100,25 +1150,30 @@ public class SyntaxAnalyzer {
     	wr.close();
     }
     
+    
     public void back_patch(int jump_addr) {    	
 	    int addr = pop_jumpstack();
 	    System.out.print("In Backpatch now #############" + "\n addr = " + addr);
 	    
+	    //Convert the addresses to Strings to be added to the table
 	    String temp_addr = "";
-    	temp_addr += addr;
-    	
+    	temp_addr += addr; 	
     	String temp_jump_addr = "";
     	temp_jump_addr += jump_addr;
-
+    	
+    	//Set the new address in the table
 	    String[] temp_table_entry = instr_table.get(addr);
 	    temp_table_entry[2] = temp_jump_addr;
 	    instr_table.set(addr, temp_table_entry);
 	    
     }
+    
+    //Add a value to the jumpstack
 	public void push_jumpstack(int addr) {
 		jumpstack.add(addr);
 	}
 	
+	//Pop the most recent value on the jumpstack
 	public int pop_jumpstack() {
     	int lastIndex = jumpstack.size() - 1;
     	int addr = jumpstack.get(lastIndex);
