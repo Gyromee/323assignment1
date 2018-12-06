@@ -37,6 +37,7 @@ public class SyntaxAnalyzer {
 	private int memoryAddress = 5000;
 	private String save;
 	private ArrayList<Integer> jumpstack = new ArrayList<Integer>();
+	String saveOp;
 	
 	public SyntaxAnalyzer(String filename, LexicalAnalyzer lexical){
 		this.filename=filename;
@@ -423,8 +424,7 @@ public class SyntaxAnalyzer {
 	public void IDs() {
 		output.add("<IDs> ::=     <Identifier> <IDs Prime>");
 		lex();
-		//if its not an identifer then we kick it out
-		System.out.println("IM IN IDs, and = " + lexeme);
+		//if its not an identifer then we kick it out		
 		if(!token.matches("^Identifier.*")) {
 			isEmpty = true;
 			return;
@@ -471,15 +471,13 @@ public class SyntaxAnalyzer {
 		}
 	}
 	
-	public void Statement_List()
-	{
+	public void Statement_List() {
 		output.add("<Statement List> ::=   <Statement> <Statement List Prime>");
 		Statement();
 		if(isEmpty == true)
 			return;
 			
 		Statement_List_Prime();
-		
 	}
 	
 	public void Statement_List_Prime()
@@ -557,6 +555,7 @@ public class SyntaxAnalyzer {
 		}
 		output.add("");
 		output.add("Token: " + token + " Lexeme: " + lexeme);
+		
 	}
 	
 	public void Assign()
@@ -674,6 +673,7 @@ public class SyntaxAnalyzer {
 	
 	public void Print() {
 		output.add("<Print> ::=    put ( <Expression>);");
+		
 		lex();
 		//must have parenthesis
 		if(!lexeme.equals("(")) {
@@ -707,11 +707,12 @@ public class SyntaxAnalyzer {
 		}
 		output.add("");
      	output.add("Token: " + token + " Lexeme: " + lexeme);
+     	gen_instr("STDOUT", "nil");
 		
 	}
 	
 	public void Scan() {
-		output.add("<Scan> ::=    get ( <IDs> );");
+		output.add("<Scan> ::=    get ( <IDs> );");		
 		lex();
 		//must have parenthesis
 		if(!lexeme.equals("(")) {
@@ -746,6 +747,7 @@ public class SyntaxAnalyzer {
 		}
 		output.add("");
 		output.add("Token: " + token + " Lexeme: " + lexeme);
+		gen_instr("STDIN", "nil");
 	}
 	
 	public void While() {
@@ -804,48 +806,59 @@ public class SyntaxAnalyzer {
 		Relop();		
 		lex();
 		Expression();
+		
+		switch (saveOp) {
+		case "==" : {
+			gen_instr("EQU", "nil");
+    		push_jumpstack(instr_address);
+    		gen_instr("JUMPZ", "nil");
+		}		
+			break;
+		case "^=" : {
+			gen_instr("NEQ", "nil");
+    		push_jumpstack(instr_address);
+    		gen_instr("JUMPZ", "nil");
+		}		
+			break;
+		case ">" : { 
+			gen_instr("GRT", "nil");
+    		push_jumpstack(instr_address);
+    		gen_instr("JUMPZ", "nil");
+		}		
+			break;
+		case "<" : {
+			gen_instr("LES", "nil");
+    		push_jumpstack(instr_address);
+    		gen_instr("JUMPZ", "nil");
+		}		
+			break;
+		case "=>" : { 
+			gen_instr("GEQ", "nil");
+    		push_jumpstack(instr_address);
+    		gen_instr("JUMPZ", "nil");
+		}		
+			break;
+		case "=<" : {
+			gen_instr("LEQ", "nil");
+    		push_jumpstack(instr_address);
+    		gen_instr("JUMPZ", "nil");
+		}		
+			break;
+		default :
+			break;
+		}	
 	}
 	
     private void Relop() {
     	output.add("<Relop> ::=        ==   |   ^=    |   >     |   <    |   =>    |   =<");
     	//checks each relop
-    	
-    	if(lexeme.equals("==")) { 
-    		gen_instr("EQU", "nil");
-    		push_jumpstack(instr_address);
-    		gen_instr("JUMPZ", "nil");
-    		return;
-    	}
-    	else if(lexeme.equals("^=")) { 
-    		gen_instr("NEQ", "nil");
-    		push_jumpstack(instr_address);
-    		gen_instr("JUMPZ", "nil");
-    		return;
-    	}
-    	else if(lexeme.equals(">")) { 
-    		gen_instr("GRT", "nil");
-    		push_jumpstack(instr_address);
-    		gen_instr("JUMPZ", "nil");
-    		return;
-    	}
-    	else if(lexeme.equals("<")) { 
-    		gen_instr("LES", "nil");
-    		push_jumpstack(instr_address);
-    		gen_instr("JUMPZ", "nil");
-    		return;
-    	}
-    	else if(lexeme.equals("=>")) { 
-    		gen_instr("GEQ", "nil");
-    		push_jumpstack(instr_address);
-    		gen_instr("JUMPZ", "nil");
-    		return;
-    	}
-    	else if(lexeme.equals("=<")) { 
-    		gen_instr("LEQ	", "nil");
-    		push_jumpstack(instr_address);
-    		gen_instr("JUMPZ", "nil");
-    		return;
-    	}
+    	saveOp = lexeme;
+    	if(lexeme.equals("==")) return;
+    	else if(lexeme.equals("^=")) return;
+    	else if(lexeme.equals(">")) return;
+    	else if(lexeme.equals("<")) return;
+    	else if(lexeme.equals("=>")) return;
+    	else if(lexeme.equals("=<")) return;
     	else {
     		x--;
     		error();
@@ -912,8 +925,7 @@ public class SyntaxAnalyzer {
     
     //33
     private void Term() {    
-    	output.add("<Term>  ::= <Factor> <Term Prime>");
-    	System.out.println("IM IN TERM AND lexeme = " + lexeme);
+    	output.add("<Term>  ::= <Factor> <Term Prime>");    	
         Factor();
         Term_Prime();        
         if(isEmpty == true) {
@@ -976,9 +988,11 @@ public class SyntaxAnalyzer {
     
     //35
     private void Factor() {
-    	output.add("<Factor> ::=      -  <Primary>    |    <Primary>");
-    	System.out.println("IM IN FACTOR AND lexeme = " + lexeme);
-    	  
+    	output.add("<Factor> ::=      -  <Primary>    |    <Primary>");    	
+    	
+    	if(token.matches("^Identifier.*")) {
+    		gen_instr("PUSHM",  get_address(lexeme));
+    	}
     	lex();
         if(lexeme.equals("-")) {
             Primary();
@@ -998,15 +1012,13 @@ public class SyntaxAnalyzer {
    
     private void Primary() {
         output.add("<Primary> ::=     <Identifier> <Identifier Prime>  |  <Integer>  |   ( <Expression> )   | <Real>  |   true   |  false");
-
-  
+        
         lex();
         //catching if statements for rule above
         if(token.matches("^Identifier.*")) {
             output.add("");
             output.add("Token: " + token + " Lexeme: " + lexeme);
-            gen_instr("PUSHM",  get_address(lexeme));
-            System.out.println("IM IN PRIMARY  lexeme = " + lexeme);
+            gen_instr("PUSHM",  get_address(lexeme));            
             Identifier_Prime();
             
             if(isEmpty == true)
@@ -1015,6 +1027,7 @@ public class SyntaxAnalyzer {
         else if(token.matches("^Integer.*")) {
             output.add("");
             output.add("Token: " + token + " Lexeme: " + lexeme);
+            gen_instr("PUSHI", lexeme);
             return;
         }
 
@@ -1108,8 +1121,7 @@ public class SyntaxAnalyzer {
     
     
     //Gets the memory address for an identifier
-    public String get_address(String id) {
-    	//System.out.println("id is: " + id);
+    public String get_address(String id) {    	
     	int address = symbolTable.get(id);
     	String temp = "";
     	temp += address;
@@ -1164,8 +1176,7 @@ public class SyntaxAnalyzer {
     	//Set the new address in the table
 	    String[] temp_table_entry = instr_table.get(addr);
 	    temp_table_entry[2] = temp_jump_addr;
-	    instr_table.set(addr, temp_table_entry);
-	    
+	    instr_table.set(addr, temp_table_entry);	    
     }
     
     //Add a value to the jumpstack
