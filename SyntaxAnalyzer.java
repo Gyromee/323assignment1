@@ -37,7 +37,8 @@ public class SyntaxAnalyzer {
 	private int memoryAddress = 5000;
 	private String save;
 	private ArrayList<Integer> jumpstack = new ArrayList<Integer>();
-	String saveOp;
+	String saveOp = "";
+	String saveScan = "";
 	
 	public SyntaxAnalyzer(String filename, LexicalAnalyzer lexical){
 		this.filename=filename;
@@ -429,14 +430,13 @@ public class SyntaxAnalyzer {
 			isEmpty = true;
 			return;
 		}
-		else {
-			gen_instr("PUSHM",  get_address(lexeme));
-		}
+		
+		
 		
 	      
 		output.add("");
 		output.add("Token: " + token + " Lexeme: " + lexeme);
-		
+		saveScan = lexeme;
 		output.add("<IDs> ::=     <Identifier> <IDs Prime>");
 		IDs_Prime();
 		if(isEmpty == true){
@@ -558,8 +558,7 @@ public class SyntaxAnalyzer {
 		
 	}
 	
-	public void Assign()
-    {
+	public void Assign() {
         output.add("<Assign> ::=     <Identifier> = <Expression> ;");
         save = lexeme;
         lex();
@@ -721,14 +720,16 @@ public class SyntaxAnalyzer {
 		}
 		output.add("");
 		output.add("Token: " + token + " Lexeme: " + lexeme);
-		
+		System.out.println("IN SCAN NOW I AM " + lexeme);
 		IDs();
 		if(isEmpty == true) {
 			x--;
 			error();
 		}
 		
+		
 		lex();
+		
 		//must have parenthesis
 		if(!lexeme.equals(")")) {
 			x--;
@@ -748,6 +749,7 @@ public class SyntaxAnalyzer {
 		output.add("");
 		output.add("Token: " + token + " Lexeme: " + lexeme);
 		gen_instr("STDIN", "nil");
+		gen_instr("POPM", get_address(saveScan));
 	}
 	
 	public void While() {
@@ -1018,7 +1020,7 @@ public class SyntaxAnalyzer {
         if(token.matches("^Identifier.*")) {
             output.add("");
             output.add("Token: " + token + " Lexeme: " + lexeme);
-            gen_instr("PUSHM",  get_address(lexeme));            
+            gen_instr("PUSHM",  get_address(lexeme));
             Identifier_Prime();
             
             if(isEmpty == true)
@@ -1072,7 +1074,7 @@ public class SyntaxAnalyzer {
     private void Identifier_Prime() {
         
         lex();
-
+        
         //if no parenthesis, check if there is comma, else then there are more IDS
         if(!lexeme.equals( "(")) {
         	if(lexeme.equals(",")) {
