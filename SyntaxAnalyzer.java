@@ -1141,6 +1141,7 @@ public class SyntaxAnalyzer {
     
     //Generates entry for instruction table
     public void gen_instr(String op, String oprnd) {
+    	if (oprnd.equals("nil")) oprnd = "";
     	String temp = "";
     	temp += instr_address;
     	String[] temp2 = {temp, op, oprnd};
