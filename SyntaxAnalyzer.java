@@ -26,7 +26,7 @@ public class SyntaxAnalyzer {
 	private ArrayList<String[]> tokensAndLexeme= new ArrayList<String[]>();
 	private ArrayList<String> output = new ArrayList<String>();
 	private boolean indexOut = false;
-	private int instr_address = 0;
+	private int instr_address = 1;
 	private ArrayList<String[]> instr_table = new ArrayList<String[]>();
 	private static final int address = 0;
 	private static final int op = 1;
@@ -36,6 +36,7 @@ public class SyntaxAnalyzer {
 	private String[] symbolTableTypes = new String[1000];
 	private int memoryAddress = 5000;
 	private String save;
+	private ArrayList<Integer> jumpstack = new ArrayList<Integer>();
 	
 	public SyntaxAnalyzer(String filename, LexicalAnalyzer lexical){
 		this.filename=filename;
@@ -61,7 +62,8 @@ public class SyntaxAnalyzer {
 	    		}
 	    	 }
 
-  	 	    		    	
+	   String[] columnNames = {"Address", "Op", "Oprnd"};	   
+	   instr_table.add(columnNames); 	 
 		//call our text file to grab the next token and lexeme
 		lex();
 		//Begin syntax analyzer
@@ -71,6 +73,8 @@ public class SyntaxAnalyzer {
 		//Write symbol table to new file
 		try {
 			output_symbolTable();
+			output_instr_table();
+
 		} catch (Exception e) {			
 			e.printStackTrace();
 		}
@@ -778,9 +782,6 @@ public class SyntaxAnalyzer {
 			Empty();
 			return;
 		}
-
-			
-
 	}
 	
 	public void Condition()
@@ -1089,12 +1090,39 @@ public class SyntaxAnalyzer {
     	wr.close();
     }
     
-//    public void back_patch(jump_addr) {
-//	    addr = pop_jumpstack();
-//	    Instr_table[addr].oprn = jump_addr;
-//    }
+    public void output_instr_table() throws Exception {
+    	BufferedWriter wr = new BufferedWriter(new FileWriter("INSTR TABLE.txt"));    	
+    	
+    	String formatStr = "%-20s %-15s %-15s%n";     	
+    	for(String[] table_entry : instr_table) {
+    		wr.write(String.format(formatStr, table_entry[0], table_entry[1], table_entry[2]));
+    	}
+    	wr.close();
+    }
+    
+    public void back_patch(int jump_addr) {    	
+	    int addr = pop_jumpstack();
+	    System.out.print("In Backpatch now #############" + "\n addr = " + addr);
+	    
+	    String temp_addr = "";
+    	temp_addr += addr;
+    	
+    	String temp_jump_addr = "";
+    	temp_jump_addr += jump_addr;
 
+	    String[] temp_table_entry = instr_table.get(addr);
+	    temp_table_entry[2] = temp_jump_addr;
+	    instr_table.set(addr, temp_table_entry);
+	    
+    }
+	public void push_jumpstack(int addr) {
+		jumpstack.add(addr);
+	}
 	
-
-	
+	public int pop_jumpstack() {
+    	int lastIndex = jumpstack.size() - 1;
+    	int addr = jumpstack.get(lastIndex);
+    	jumpstack.remove(lastIndex);
+		return addr; 
+	}
 }
