@@ -49,7 +49,7 @@ public class SyntaxAnalyzer {
 	public void start() throws FileNotFoundException, IOException {
 		
 		try (BufferedReader br = new BufferedReader(new FileReader(filename))){
-	    	BufferedWriter wr = new BufferedWriter(new FileWriter("syntaxResult.txt"));
+	    	BufferedWriter wr = new BufferedWriter(new FileWriter("Syntax Result.txt"));
 	    	
 	    	//Checks if there are any invalid tokens in our text file
 	    	//if there were, write to a new file and write where it found the invalid and what token it was
@@ -940,11 +940,13 @@ public class SyntaxAnalyzer {
                 return;
         }
         else if(token.matches("^Integer.*")) {
-        	//If the identifier associated with this token is a boolean, the only values it can accept are 1 and 0;
-        	if(symbolTableTypes.get(symbolTable.get(currentIdentifier)).equals("Boolean")) {
-            	if (!lexeme.equals("true") || !lexeme.equals("false"))
-            		error("boolean value");
-            }        	
+        	//If the identifier associated with this token is a boolean, the only values it can accept are true and false        	
+        	if (checkSymbolTable(currentIdentifier)) {
+	        	if(symbolTableTypes.get(symbolTable.get(currentIdentifier)).equals("Boolean")) {
+	            	if (!lexeme.equals("true") || !lexeme.equals("false"))
+	            		error("boolean value");
+	            }	        	
+        	}
             output.add("");
             output.add("Token: " + token + " Lexeme: " + lexeme);
             gen_instr("PUSHI", lexeme);
@@ -967,10 +969,12 @@ public class SyntaxAnalyzer {
         }
         else if(lexeme.equals("true")){
         	//If the identifier associated with this token is an integer, then its an error
-        	if(symbolTableTypes.get(symbolTable.get(currentIdentifier)).equals("Integer")) {
-            	if (!lexeme.matches("^\\d+$"))
-            		error("integer value");
-            }    
+        	if (checkSymbolTable(currentIdentifier)) {
+        		if(symbolTableTypes.get(symbolTable.get(currentIdentifier)).equals("Integer")) {        		
+	            	if (!lexeme.matches("^\\d+$"))
+	            		error("integer value");  
+        		}
+	        }
             output.add("");
              output.add("Token: " + token + " Lexeme: " + lexeme);
              gen_instr("PUSHI", "1");
@@ -978,10 +982,12 @@ public class SyntaxAnalyzer {
         }
         else if(lexeme.equals("false")) {
         	//If the identifier associated with this token is an integer, then its an error
-        	if(symbolTableTypes.get(symbolTable.get(currentIdentifier)).equals("Integer")) {
-            	if (!lexeme.matches("^\\d+$"))
-            		error("integer value");
-            }    
+        	if (checkSymbolTable(currentIdentifier)) {
+        		if(symbolTableTypes.get(symbolTable.get(currentIdentifier)).equals("Integer")) {
+        			if (!lexeme.matches("^\\d+$"))
+        				error("integer value");
+            	}    
+        	}
             output.add("");
 			output.add("Token: " + token + " Lexeme: " + lexeme);
 			gen_instr("PUSHI", "0");
@@ -1011,10 +1017,8 @@ public class SyntaxAnalyzer {
                  }
         		 if(lexeme.equals(")")) {
                  	return;
-        		 }
-        		 
+        		 }        		 
         		Identifier_Prime();
-
         	}
             isEmpty = true;
             x--;
@@ -1095,7 +1099,7 @@ public class SyntaxAnalyzer {
     
     //Output the instr_table in aligned columns
     public void output_instr_table() throws Exception {
-    	BufferedWriter wr = new BufferedWriter(new FileWriter("INSTR TABLE.txt"));    	
+    	BufferedWriter wr = new BufferedWriter(new FileWriter("Instr Table.txt"));    	
     	String formatStr = "%-20s %-15s %-15s%n";     	
     	for(String[] table_entry : instr_table) {
     		wr.write(String.format(formatStr, table_entry[0], table_entry[1], table_entry[2]));
