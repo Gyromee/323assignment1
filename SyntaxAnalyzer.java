@@ -5,8 +5,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Map;
 import java.util.Set;
 import java.util.Hashtable;
 import java.util.LinkedHashMap;
@@ -20,20 +18,16 @@ public class SyntaxAnalyzer {
 	private String lineNumber = "";
 	private LexicalAnalyzer lexical;
 	private String lexeme = "";
-    private String token = "";
-    private int x = 0;
+	private String token = "";
+	private int x = 0;
 	private boolean isEmpty = false;
 	private ArrayList<String[]> tokensAndLexeme= new ArrayList<String[]>();
 	private ArrayList<String> output = new ArrayList<String>();
 	private boolean indexOut = false;
 	private int instr_address = 1;
 	private ArrayList<String[]> instr_table = new ArrayList<String[]>();
-	private static final int address = 0;
-	private static final int op = 1;
-	private static final int oprnd = 2;
-	private Hashtable<String, Integer> symbolTable2 = new Hashtable<String, Integer>();
 	private LinkedHashMap<String, Integer> symbolTable = new LinkedHashMap<String, Integer>();
-	private ArrayList<String> symbolTableTypes = new ArrayList<String>();
+	private LinkedHashMap<Integer, String> symbolTableTypes = new LinkedHashMap<Integer, String>();
 	private int memoryAddress = 5000;
 	private String save;	
 	private ArrayList<Integer> jumpstack = new ArrayList<Integer>();
@@ -41,6 +35,8 @@ public class SyntaxAnalyzer {
 	String saveOp = "";
 	String saveScan = "";
 	int duplicatePush;
+	boolean isInitialized = false;
+	String currentIdentifier;
 	
 	
 	public SyntaxAnalyzer(String filename, LexicalAnalyzer lexical){
@@ -108,17 +104,23 @@ public class SyntaxAnalyzer {
 		    
 		    //If token is an Identifier, then add it to the symbol table
 		    if(token.matches("^Identifier.*")) {
+		    
+		    	//Store the current identifier to check against for future tokens associated with it.
+		    	currentIdentifier = lexeme;
 		    	
-		    	if (!checkSymbolTable(lexeme)) {
-		    		insertSymbolTable(lexeme, saveType);
+		    	
+		    	//Check if it has already been initialized earlier
+		    	if (checkSymbolTable(lexeme) && isInitialized == true) {
+		    		 output.add("Error, the identifier " + lexeme + " has already been initialized" + ".");
+		    	     output.add("");
 		    	}
 		    	
-		    	System.out.println("Token: " + lexeme + ",    Address: " + symbolTable.get(lexeme));
-		    	
-		    	
-		    	
-			}
-		    //System.out.println("Token: " + lexeme + "         " + x);
+		    	//Add new identifier to the symbol table
+		    	if (!checkSymbolTable(lexeme) && isInitialized == true) {
+		    		insertSymbolTable(lexeme, saveType);
+		    	}		    	
+		    	   	
+			}		   
 		    //If there are no more symbols and the last one was not $$, then error
 		    x++;
 		    if(x == tokensAndLexeme.size()) {
@@ -414,7 +416,7 @@ public class SyntaxAnalyzer {
 			error(";");
 		}
 		else
-		Declaration_List_Prime();
+			Declaration_List_Prime();
 	}
 	
 	public void Declaration()
@@ -424,7 +426,10 @@ public class SyntaxAnalyzer {
 		if(isEmpty == true) {
 			return;
 		}
+		else
+			isInitialized = true;
 		IDs();
+		isInitialized = false;
 		if(isEmpty == true) {
 			x--;
 			error();
@@ -570,6 +575,10 @@ public class SyntaxAnalyzer {
 	public void Assign() {
         output.add("<Assign> ::=     <Identifier> = <Expression> ;");
         save = lexeme;
+        if (!checkSymbolTable(save)) {
+        	
+        	error("Qualifier");
+        }
         lex();
         //since we are in assign, we need to assign something. if there is no equal, we cant assign therefore error
         if(!lexeme.equals("=")) {
@@ -580,7 +589,7 @@ public class SyntaxAnalyzer {
         
         Expression();
         
-        
+        if (checkSymbolTable(save))
         gen_instr("POPM", get_address(save));
         
         lex();
@@ -596,8 +605,7 @@ public class SyntaxAnalyzer {
 	public void If()
 	{
 		
-		output.add("<If> ::= if (<Condition>) <Statement> <If Prime>");
-		int addr = instr_address;
+		output.add("<If> ::= if (<Condition>) <Statement> <If Prime>");		
 		lex();
 		//following rule above, we need a parenthesis
 		if(!lexeme.equals("(")) {
@@ -728,8 +736,7 @@ public class SyntaxAnalyzer {
 			error("(");
 		}
 		output.add("");
-		output.add("Token: " + token + " Lexeme: " + lexeme);
-		System.out.println("IN SCAN NOW I AM " + lexeme);
+		output.add("Token: " + token + " Lexeme: " + lexeme);		
 		IDs();
 		if(isEmpty == true) {
 			x--;
@@ -974,7 +981,7 @@ public class SyntaxAnalyzer {
         	output.add("");
          	output.add("Token: " + token + " Lexeme: " + lexeme);
           	lex();
-          //checks if there are multiple op signs that werent caught in our lexical analyzer
+          	//checks if there are multiple op signs that werent caught in our lexical analyzer
           	if(lexeme.equals("+") || lexeme.equals("-") || lexeme.equals("*") || lexeme.equals("/"))
         	{
         		x--;
@@ -994,8 +1001,7 @@ public class SyntaxAnalyzer {
         	isEmpty = true;
         	x--;
         	return;
-        }
-                
+        }                
     }
     
     //35
@@ -1003,6 +1009,7 @@ public class SyntaxAnalyzer {
     	output.add("<Factor> ::=      -  <Primary>    |    <Primary>");    	
     	
     	if(token.matches("^Identifier.*")) {
+    		if (checkSymbolTable(lexeme))
     		gen_instr("PUSHM",  get_address(lexeme));
     		duplicatePush = 1;
     	}
@@ -1012,29 +1019,26 @@ public class SyntaxAnalyzer {
         	output.add("");
 	     	output.add("Token: " + token + " Lexeme: " + lexeme);
         }        
-        else {
-        	  
+        else {        	 
         	x--;
             Primary();
             if(isEmpty == true)
             	return;
-        }
-        
-      
+        }              
     }
    
-    private void Primary() {
-        output.add("<Primary> ::=     <Identifier> <Identifier Prime>  |  <Integer>  |   ( <Expression> )   | <Real>  |   true   |  false");
-        
+    private void Primary() {	
+    	output.add("<Primary> ::=     <Identifier> <Identifier Prime>  |  <Integer>  |   ( <Expression> )   | <Real>  |   true   |  false");        
         lex();
+	
         //catching if statements for rule above
         if(token.matches("^Identifier.*")) {
             output.add("");
             output.add("Token: " + token + " Lexeme: " + lexeme);
             
             if(duplicatePush < 1) {
-            	gen_instr("PUSHM",  get_address(lexeme)); 
-            	System.out.println("Duplicate push number: " + duplicatePush);
+            	if (checkSymbolTable(lexeme))
+            	gen_instr("PUSHM",  get_address(lexeme));             	
             	duplicatePush++;
             }
             Identifier_Prime();
@@ -1043,6 +1047,11 @@ public class SyntaxAnalyzer {
                 return;
         }
         else if(token.matches("^Integer.*")) {
+        	//If the identifier associated with this token is a boolean, the only values it can accept are 1 and 0;
+        	if(symbolTableTypes.get(symbolTable.get(currentIdentifier)).equals("Boolean")) {
+            	if (!lexeme.equals("0") || !lexeme.equals("1"))
+            		error("boolean value");
+            }        	
             output.add("");
             output.add("Token: " + token + " Lexeme: " + lexeme);
             gen_instr("PUSHI", lexeme);
@@ -1069,21 +1078,32 @@ public class SyntaxAnalyzer {
             return;
         }
         else if(lexeme.equals("true")){
+        	//If the identifier associated with this token is an integer, then its an error
+        	if(symbolTableTypes.get(symbolTable.get(currentIdentifier)).equals("Integer")) {
+            	if (!lexeme.matches("^\\d+$"))
+            		error("integer value");
+            }    
             output.add("");
              output.add("Token: " + token + " Lexeme: " + lexeme);
+             gen_instr("PUSHI", "1");
             return;
         }
         else if(lexeme.equals("false")) {
+        	//If the identifier associated with this token is an integer, then its an error
+        	if(symbolTableTypes.get(symbolTable.get(currentIdentifier)).equals("Integer")) {
+            	if (!lexeme.matches("^\\d+$"))
+            		error("integer value");
+            }    
             output.add("");
-             output.add("Token: " + token + " Lexeme: " + lexeme);
+			output.add("Token: " + token + " Lexeme: " + lexeme);
+			gen_instr("PUSHI", "0");
             return;
         }
         else {
             isEmpty = true;
             x--;
             return;
-        }
-        
+        }       
     }
     
     //37
@@ -1126,7 +1146,6 @@ public class SyntaxAnalyzer {
                 x--;
                 error(")");
             }
-
         }
     }
     
@@ -1168,7 +1187,7 @@ public class SyntaxAnalyzer {
     //Insert into symbol table
     public void insertSymbolTable(String id, String type) {
     	symbolTable.put(id, memoryAddress);
-		symbolTableTypes.add(type);
+		symbolTableTypes.put(memoryAddress, type);
 		memoryAddress++;
     }
     
@@ -1198,12 +1217,9 @@ public class SyntaxAnalyzer {
     
     
     public void back_patch(int jump_addr) {    	
-	    int addr = pop_jumpstack();
-	    System.out.print("In Backpatch now #############" + "\n addr = " + addr);
+	    int addr = pop_jumpstack();	    
 	    
-	    //Convert the addresses to Strings to be added to the table
-	    String temp_addr = "";
-    	temp_addr += addr; 	
+	    //Convert the addresses to Strings to be added to the table	     	 	
     	String temp_jump_addr = "";
     	temp_jump_addr += jump_addr;
     	
