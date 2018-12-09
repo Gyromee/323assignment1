@@ -5,7 +5,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Map;
 import java.util.Set;
+import java.util.Hashtable;
 import java.util.LinkedHashMap;
 
 
@@ -25,17 +28,19 @@ public class SyntaxAnalyzer {
 	private boolean indexOut = false;
 	private int instr_address = 1;
 	private ArrayList<String[]> instr_table = new ArrayList<String[]>();
+	private static final int address = 0;
+	private static final int op = 1;
+	private static final int oprnd = 2;
+	private Hashtable<String, Integer> symbolTable2 = new Hashtable<String, Integer>();
 	private LinkedHashMap<String, Integer> symbolTable = new LinkedHashMap<String, Integer>();
 	private ArrayList<String> symbolTableTypes = new ArrayList<String>();
 	private int memoryAddress = 5000;
-	private String save;
+	private String save;	
 	private ArrayList<Integer> jumpstack = new ArrayList<Integer>();
 	String saveType = "";
 	String saveOp = "";
 	String saveScan = "";
 	int duplicatePush;
-	boolean isInitialized = false;
-	boolean hadAnError = false;
 	
 	
 	public SyntaxAnalyzer(String filename, LexicalAnalyzer lexical){
@@ -60,24 +65,24 @@ public class SyntaxAnalyzer {
 	    		}
 	    	 }
 
-		   String[] columnNames = {"Address", "Op", "Oprnd"};	   
-		   instr_table.add(columnNames); 	 
-		   //call our text file to grab the next token and lexeme
-		   lex();
-		   //Begin syntax analyzer
-		   Rat18F();
-		   //Write to the new file
-		   writeToFile(wr);
-		   //Write symbol table to new file
-		   try {
-			   output_symbolTable();
-			   output_instr_table();
-	
-		   } catch (Exception e) {			
-			   e.printStackTrace();
-		   }
-		   System.exit(0);;
+	   String[] columnNames = {"Address", "Op", "Oprnd"};	   
+	   instr_table.add(columnNames); 	 
+		//call our text file to grab the next token and lexeme
+		lex();
+		//Begin syntax analyzer
+		Rat18F();
+		//Write to the new file
+		writeToFile(wr);
+		//Write symbol table to new file
+		try {
+			output_symbolTable();
+			output_instr_table();
+
+		} catch (Exception e) {			
+			e.printStackTrace();
 		}
+		System.exit(0);;
+	}
 		
 		
 		
@@ -100,32 +105,20 @@ public class SyntaxAnalyzer {
 		    token = temp[0];
 		    lexeme = temp[1];
 		    lineNumber = temp[2];
-		    		  
+		    
 		    //If token is an Identifier, then add it to the symbol table
 		    if(token.matches("^Identifier.*")) {
-		    	//Check if it already exists in the table first, output error if it does
-		    	if (checkSymbolTable(lexeme) && isInitialized == true) {
-		    		output.add("");
-	    			output.add("Error, Identifier on line " + lineNumber + " is already initialized.");
-		            output.add("");
+		    	
+		    	if (!checkSymbolTable(lexeme)) {
+		    		insertSymbolTable(lexeme, saveType);
 		    	}
 		    	
-		    	else if (!checkSymbolTable(lexeme)) {
-		    		//If there was no qualifier, output error and don't add to symbol table
-		    		if (isInitialized == false) {
-		    			output.add("");
-		    			output.add("Error, expected Qualifier on line " + lineNumber + ".");
-		    			output.add("");
-		    			
-			    	}
-		    		//Add new symbol to symbol table
-		    		else {
-		    			insertSymbolTable(lexeme, saveType); 
-			    	}
-		    	}
+		    	System.out.println("Token: " + lexeme + ",    Address: " + symbolTable.get(lexeme));
+		    	
+		    	
 		    	
 			}
-		    
+		    //System.out.println("Token: " + lexeme + "         " + x);
 		    //If there are no more symbols and the last one was not $$, then error
 		    x++;
 		    if(x == tokensAndLexeme.size()) {
@@ -135,17 +128,17 @@ public class SyntaxAnalyzer {
 	}
 	//prints out an error with an expected string
 	private void error(String expectedString) {
-		output.add("");
-		output.add("Error, expected a " + expectedString + " on line " + lineNumber + ".");
+        output.add("Error, expected a " + expectedString + " on line " + lineNumber + ".");
         output.add("");
+       // x++;
     }
     private void error() {
-		output.add("");
-		output.add("Error, expected " + token + " on line " + lineNumber + ".");
-        
+        output.add("Error, expected " + token + " on line " + lineNumber + ".");
+        output.add("");
+       // x++;
     }
 	//The beginning of the rat18F function
-	public void Rat18F() {
+	public void Rat18F(){
 		output.add("Token: " + token + " Lexeme: " + lexeme);
 		output.add("<Rat18F>  ::=   <Opt Function Definitions>");
 		//goes to this first
@@ -188,7 +181,8 @@ public class SyntaxAnalyzer {
 		Function_Definition_Prime();
 	}
 	
-	public void Function_Definition_Prime() {
+	public void Function_Definition_Prime()
+	{
 		output.add("<Function Definitions Prime> ::= <Function> <Function Definitions Prime> | <Empty>");
 		//will recursively call this if it was not empty
 		if(isEmpty == false) {
@@ -201,7 +195,8 @@ public class SyntaxAnalyzer {
 		}
 	}
 	
-	public void Function() {
+	public void Function()
+	{
 		output.add("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>  <Body>");
 		//Call the next element and token of the array  
 		if(!lexeme.equals("function")) {
@@ -341,6 +336,7 @@ public class SyntaxAnalyzer {
 				default :
 					break;						
 			}
+			
 		}
 		else{
 			isEmpty = true;
@@ -407,6 +403,7 @@ public class SyntaxAnalyzer {
 
 		Declaration();
 		if(isEmpty == true) {
+			//x--;
 			return;
 		}
 		
@@ -417,19 +414,17 @@ public class SyntaxAnalyzer {
 			error(";");
 		}
 		else
-			Declaration_List_Prime();
+		Declaration_List_Prime();
 	}
 	
-	public void Declaration() {
+	public void Declaration()
+	{
 		output.add("<Declaration> ::=   <Qualifier > <IDs>");
 		Qualifier();
 		if(isEmpty == true) {
 			return;
 		}
-		else
-			isInitialized = true;
 		IDs();
-		isInitialized = false;
 		if(isEmpty == true) {
 			x--;
 			error();
@@ -442,7 +437,6 @@ public class SyntaxAnalyzer {
 		//if its not an identifer then we kick it out		
 		if(!token.matches("^Identifier.*")) {
 			isEmpty = true;
-			isInitialized = false;
 			return;
 		}
 		
@@ -460,7 +454,8 @@ public class SyntaxAnalyzer {
 		}
 	}
 	
-	public void IDs_Prime() {
+	public void IDs_Prime()
+	{
 		lex();
 		output.add("<IDs Prime> ::=	, <Identifier> <IDs Prime> | <Empty>");
 		//if there is no comma then it is empty. no more Ids
@@ -494,7 +489,8 @@ public class SyntaxAnalyzer {
 		Statement_List_Prime();
 	}
 	
-	public void Statement_List_Prime() {
+	public void Statement_List_Prime()
+	{
 		output.add("<Statement List Prime> ::= <Statement> <Statement List Prime> | <Empty>");
 		Statement();
 		if(isEmpty == true) 
@@ -503,7 +499,8 @@ public class SyntaxAnalyzer {
 		Statement_List_Prime();
 	}
 
-	public void Statement() {
+	public void Statement()
+	{
 
 		output.add("<Statement> ::=   <Compound>  |  <Assign>  |   <If>  |  <Return>   | <Print>   |   <Scan>   |  <While>");
 		lex();
@@ -555,7 +552,8 @@ public class SyntaxAnalyzer {
 		
 	}
 	
-	public void Compound() {
+	public void Compound()
+	{
 		output.add("<Compound> ::=   {  <Statement List>  } ");
 		Statement_List();
 		lex();
@@ -590,12 +588,16 @@ public class SyntaxAnalyzer {
         if(!lexeme.equals(";")) {
             x--;
             error(";");
-        }               
+        }
+        
+        
     }
 	
-	public void If() {
+	public void If()
+	{
 		
 		output.add("<If> ::= if (<Condition>) <Statement> <If Prime>");
+		int addr = instr_address;
 		lex();
 		//following rule above, we need a parenthesis
 		if(!lexeme.equals("(")) {
@@ -620,7 +622,6 @@ public class SyntaxAnalyzer {
 		lex();
 		//if there was ifend then we are done with if statement
 		if(lexeme.equals("ifend")) {
-			output.add("");
 			output.add("Token: " + token + " Lexeme: " + lexeme);
 			return;
 		}
@@ -632,7 +633,6 @@ public class SyntaxAnalyzer {
 			lex();
 			//check if it is ifend. if not then there must be error
 			if(lexeme.equals("ifend")) {
-				output.add("");
 				output.add("Token: " + token + " Lexeme: " + lexeme);
 				return;
 			}
@@ -729,12 +729,13 @@ public class SyntaxAnalyzer {
 		}
 		output.add("");
 		output.add("Token: " + token + " Lexeme: " + lexeme);
-		
+		System.out.println("IN SCAN NOW I AM " + lexeme);
 		IDs();
 		if(isEmpty == true) {
 			x--;
 			error();
-		}		
+		}
+		
 		
 		lex();
 		
@@ -742,7 +743,8 @@ public class SyntaxAnalyzer {
 		if(!lexeme.equals(")")) {
 			x--;
 			error(")");
-		}		
+		}
+		
 		
 		output.add("");
 		output.add("Token: " + token + " Lexeme: " + lexeme);
@@ -816,7 +818,6 @@ public class SyntaxAnalyzer {
 		lex();
 		Expression();
 		
-		//Generate instructions for each relop
 		switch (saveOp) {
 		case "==" : {
 			gen_instr("EQU", "nil");
@@ -1032,7 +1033,8 @@ public class SyntaxAnalyzer {
             output.add("Token: " + token + " Lexeme: " + lexeme);
             
             if(duplicatePush < 1) {
-            	gen_instr("PUSHM",  get_address(lexeme));             	
+            	gen_instr("PUSHM",  get_address(lexeme)); 
+            	System.out.println("Duplicate push number: " + duplicatePush);
             	duplicatePush++;
             }
             Identifier_Prime();
@@ -1042,7 +1044,7 @@ public class SyntaxAnalyzer {
         }
         else if(token.matches("^Integer.*")) {
             output.add("");
-            output.add("Token: " + token + " Lexeme: " + lexeme);            
+            output.add("Token: " + token + " Lexeme: " + lexeme);
             gen_instr("PUSHI", lexeme);
             return;
         }
@@ -1150,7 +1152,8 @@ public class SyntaxAnalyzer {
     	String temp = "";
     	temp += instr_address;
     	String[] temp2 = {temp, op, oprnd};
-    	instr_table.add(instr_address, temp2);    	
+    	instr_table.add(instr_address, temp2);
+    	
     	instr_address++;
     }
     
@@ -1177,7 +1180,7 @@ public class SyntaxAnalyzer {
     	    wr.write("Identifier       MemoryLocation       Type");
     	    wr.newLine();
     	for (String key: keys) {    		
-    		wr.write(String.format(formatStr ,key, symbolTable.get(key), symbolTableTypes.get(symbolTable.get(key) - 5000)));
+    		wr.write(String.format(formatStr ,key, symbolTable.get(key), "integer" ));
     	}
     	wr.close();
     }
@@ -1185,7 +1188,7 @@ public class SyntaxAnalyzer {
     
     //Output the instr_table in aligned columns
     public void output_instr_table() throws Exception {
-    	BufferedWriter wr = new BufferedWriter(new FileWriter("Instr Table.txt"));    	
+    	BufferedWriter wr = new BufferedWriter(new FileWriter("INSTR TABLE.txt"));    	
     	String formatStr = "%-20s %-15s %-15s%n";     	
     	for(String[] table_entry : instr_table) {
     		wr.write(String.format(formatStr, table_entry[0], table_entry[1], table_entry[2]));
@@ -1195,9 +1198,12 @@ public class SyntaxAnalyzer {
     
     
     public void back_patch(int jump_addr) {    	
-	    int addr = pop_jumpstack();	    
+	    int addr = pop_jumpstack();
+	    System.out.print("In Backpatch now #############" + "\n addr = " + addr);
 	    
-	    //Convert the addresses to Strings to be added to the table	    
+	    //Convert the addresses to Strings to be added to the table
+	    String temp_addr = "";
+    	temp_addr += addr; 	
     	String temp_jump_addr = "";
     	temp_jump_addr += jump_addr;
     	
