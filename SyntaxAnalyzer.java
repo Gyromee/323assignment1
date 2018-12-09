@@ -476,6 +476,18 @@ public class SyntaxAnalyzer {
 		Statement();
 		back_patch(instr_address);
 		If_Prime();
+        lex();
+        //check after whileend is $$, if not then there are most statements we must find
+        if(lexeme.equals("$$")) {
+            x--;
+            isEmpty = true;
+            return;
+        }
+        else {
+            x--;
+            Empty();
+            return;
+        }
 	}
 	
 	public void If_Prime(){
