@@ -34,10 +34,11 @@ public class SyntaxAnalyzer {
 	String saveType = "";
 	String saveOp = "";
 	String saveScan = "";
+	String saveWhile = "";
 	int duplicatePush;
 	boolean isInitialized = false;
 	String currentIdentifier;
-	
+	boolean inAWhileOrIf = false;
 	
 	public SyntaxAnalyzer(String filename, LexicalAnalyzer lexical){
 		this.filename=filename;
@@ -95,8 +96,10 @@ public class SyntaxAnalyzer {
 	
 	//Grabs the next token and lexeme
 	private void lex() {
-		//this if statement makes it so we won't get index out of bounds 
+		//this if statement makes it so we won't get index out of bounds
+		
 		if(indexOut == false){
+			
 		    String temp[] = tokensAndLexeme.get(x);
 		    token = temp[0];
 		    lexeme = temp[1];
@@ -123,7 +126,7 @@ public class SyntaxAnalyzer {
 			}		   
 		    //If there are no more symbols and the last one was not $$, then error
 		    x++;
-		    if(x == tokensAndLexeme.size()) {
+		    if(x == tokensAndLexeme.size()) {		    	
 		    	indexOut = true;
 		    	}
 		}    
@@ -142,24 +145,20 @@ public class SyntaxAnalyzer {
 	//The beginning of the rat18F function
 	public void Rat18F(){
 		output.add("Token: " + token + " Lexeme: " + lexeme);
-		output.add("<Rat18F>  ::=   <Opt Function Definitions>");
-		//goes to this first
-		Opt_Function_Definitions();
-		
-		lex();
 		//if the next lexeme does not equal $$, then error out because it needs a $$
 		if (!lexeme.equals("$$")) {
 			x--;
 			error("$$");
 		}
-		output.add("");
-		output.add("Token: " + token + " Lexeme: " + lexeme);
+		
 		//if it did contain $$, then go to this function
 		Opt_Declaration_List();
 		//next function and last thing in the rat18F
 		Statement_List();
 		
+		
 		lex();
+		
 		//We are done with the syntax. If the file did not end with a $$, then there must be an error
 		if (!lexeme.equals("$$")) {
 			x--;
@@ -169,165 +168,14 @@ public class SyntaxAnalyzer {
 		output.add("Token: " + token + " Lexeme: " + lexeme);
 	}
 	
-	
-	public void Opt_Function_Definitions(){
-		output.add("<Opt Function Definitions> ::= <Function Definitions> ");
-		Function_Definitions();
-		//If empty is called, there was no function definition and then return
-		Empty();
-	}
-	
-	public void Function_Definitions(){
-		output.add("<Function Definitions>  ::= <Function>");
-		Function();
-		Function_Definition_Prime();
-	}
-	
-	public void Function_Definition_Prime()
-	{
-		output.add("<Function Definitions Prime> ::= <Function> <Function Definitions Prime> | <Empty>");
-		//will recursively call this if it was not empty
-		if(isEmpty == false) {
-			Function();
-			Function_Definition_Prime();
-		}
-		else {
-			Empty();
-			return;
-		}
-	}
-	
-	public void Function()
-	{
-		output.add("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>  <Body>");
-		//Call the next element and token of the array  
-		if(!lexeme.equals("function")) {
-			x--;
-		
-			isEmpty = true;
-			return;
-		}
-		
-		lex();
-		//if its not an identifer as expected then there must be an error
-		if(!token.matches("^Identifier.*")) {
-			x--;
-			error();
-			
-		}
-			
-		output.add("<Function> ::= function  <Identifier>");
-		//Print token and Lexeme
-		output.add("");
-		output.add("Token: " + token + " Lexeme: " + lexeme);
-		//Following the rule above, it needs to have a parenthesis
-		lex();
-		if(!lexeme.equals("(")) {
-			x--;
-			error("(");
-		}
-		output.add("");
-		output.add("Token: " + token + " Lexeme: " + lexeme);
-		
-		Opt_Parameter_List();
-		// Needs to end with a parenthesis
-		lex();
-		if(!lexeme.equals(")")){
-			x--;
-			error(")");
-		}
-		output.add("");
-		output.add("Token: " + token + " Lexeme: " + lexeme);
-		output.add("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>  <Body>");
-		//Optional decl list can be blank because its optional
-		Opt_Declaration_List();
-		output.add("Token: " + token + " Lexeme: " + lexeme);
-
-		output.add("<Function> ::= function  <Identifier>   ( <Opt Parameter List> )  <Opt Declaration List>  <Body>");
-		//call body 
-		Body();
-		lex();
-        if(lexeme.equals("function")) {
-            isEmpty = false;
-            
-            return;
-        }
-        else {
-            x--;
-            return;
-        }
-		
-	}
-	
-	public void Opt_Parameter_List() {
-		output.add("<Opt Parameter List> ::=  <Parameter List>    |     <Empty>");
-		Parameter_List();
-		Empty();
-	}
-	
-	public void Parameter_List() {
-		output.add("<Parameter List>  ::=  <Parameter> <Parameter List Prime>");
-		Parameter();
-		if(isEmpty == true)
-			return;
-		Parameter_List_Prime();
-		
-	}
-
-	public void Parameter_List_Prime() {
-		output.add("<Parameter List Prime>  ::=  , <Parameter> <Parameter List Prime>    |     <Empty>");
-		lex();
-		//By the rule, it must have a comma. if not then there was no more parameter. 
-		if(!lexeme.equals(",")) {
-			x--;
-			return;
-		}
-		//if it does equal , then we know there are more parameters
-		Parameter();
-		if(isEmpty == true) {
-			x--;
-			error();
-		}
-		
-		Parameter_List_Prime();
-		
-	}
-	
-	public void Parameter() {
-		output.add("<Parameter> ::=  <IDs > : <Qualifier> ");
-		IDs();
-		if(isEmpty == true) {
-			x--;
-			return;
-		}
-		lex();
-		// By the rule it needs the colon. if there is no colon we error it out
-		if(!lexeme.equals(":")) {
-			x--;
-			error(":");
-		}
-		//print out :
-		output.add("");
-		output.add("Token: " + token + " Lexeme: " + lexeme);
-		output.add("<Parameter> ::=  <IDs > : <Qualifier> ");
-		
-		
-		Qualifier();
-		if(isEmpty == true) {
-			error("Expecting a qualifier ");
-			
-		}
-
-	}
-	
 	public void Qualifier() {
-		output.add("<Qualifier> ::= int     |    boolean    |  real ");
+		output.add("<Qualifier> ::= int     |    boolean    ");
 		lex();
 		//Following the rule above, if it doesn't have any of those qualifiers we return
-		if(lexeme.equals("int") || lexeme.equals("boolean") || lexeme.equals("real")) {
+		if(lexeme.equals("int") || lexeme.equals("boolean")) {
 			output.add("");
 			output.add("Token: " + token + " Lexeme: " + lexeme);
-			output.add("<Qualifier> ::= int     |    boolean    |  real ");
+			output.add("<Qualifier> ::= int     |    boolean    ");
 			
 			//Determine which type to add to symbol table
 			switch (lexeme) {
@@ -492,6 +340,7 @@ public class SyntaxAnalyzer {
 			return;
 			
 		Statement_List_Prime();
+		
 	}
 	
 	public void Statement_List_Prime()
@@ -504,11 +353,11 @@ public class SyntaxAnalyzer {
 		Statement_List_Prime();
 	}
 
-	public void Statement()
-	{
+	public void Statement() {
 
 		output.add("<Statement> ::=   <Compound>  |  <Assign>  |   <If>  |  <Return>   | <Print>   |   <Scan>   |  <While>");
 		lex();
+		
 		//if { then go to compound 
 		if (lexeme.equals("{")) {
 			output.add("");
@@ -519,7 +368,7 @@ public class SyntaxAnalyzer {
 		//if there was an identifier it must be assign then go to compound 
 		else if (token.matches("^Identifier.*")) {
 			output.add("");
-	     	output.add("Token: " + token + " Lexeme: " + lexeme);
+	     	output.add("Token: " + token + " Lexeme: " + lexeme);	     	
 	     	Assign();
 		}
 		else if (lexeme.equals("if")){
@@ -561,7 +410,9 @@ public class SyntaxAnalyzer {
 	{
 		output.add("<Compound> ::=   {  <Statement List>  } ");
 		Statement_List();
+		
 		lex();
+		
 		//at the end of compound it must be a } or it will be error
 		if(!lexeme.equals("}")) {
 			x--;
@@ -573,6 +424,8 @@ public class SyntaxAnalyzer {
 	}
 	
 	public void Assign() {
+		
+		
         output.add("<Assign> ::=     <Identifier> = <Expression> ;");
         save = lexeme;
         if (!checkSymbolTable(save)) {
@@ -604,7 +457,7 @@ public class SyntaxAnalyzer {
 	
 	public void If()
 	{
-		
+		inAWhileOrIf = true;
 		output.add("<If> ::= if (<Condition>) <Statement> <If Prime>");		
 		lex();
 		//following rule above, we need a parenthesis
@@ -614,6 +467,7 @@ public class SyntaxAnalyzer {
 		}
 		Condition();
 		lex();
+		inAWhileOrIf = false;
 		//following rule above, we need to have end parenthesis after running those functions
 		if(!lexeme.equals(")")) {
 			x--;
@@ -629,7 +483,7 @@ public class SyntaxAnalyzer {
 		output.add("<If Prime> ::= ifend |	else  <Statement>  ifend");
 		lex();
 		//if there was ifend then we are done with if statement
-		if(lexeme.equals("ifend")) {
+		if(lexeme.equals("ifend")) {			
 			output.add("Token: " + token + " Lexeme: " + lexeme);
 			return;
 		}
@@ -769,33 +623,41 @@ public class SyntaxAnalyzer {
 	}
 	
 	public void While() {
+		inAWhileOrIf = true;
         output.add("<While> ::=  while ( <Condition>  )  <Statement>  whileend");
         String addr = "";
         addr += instr_address;
         gen_instr("LABEL", "nil");
-
+        
         lex();
+        
         if(!lexeme.equals("(")) {
             x--;
             error("(");
         }
+        
         Condition();
+       
         if(isEmpty == true) {
             x--;
             error();
         }
         
         lex();
+        
+        inAWhileOrIf = false;
         if(!lexeme.equals(")")) {
             x--;
             error(")");
         }
+        
         Statement();
         
         gen_instr("JUMP", addr);
         back_patch(instr_address);
         
         lex();
+        
         if(!lexeme.equals("whileend")) {
             x--;
             error("whileend");
@@ -814,12 +676,15 @@ public class SyntaxAnalyzer {
             Empty();
             return;
         }
+        
     }
 	
 	public void Condition(){
 		output.add("<Condition> ::=     <Expression>  <Relop>   <Expression>");
 		// calls each function with respect to the above rule
+		
 		Expression();
+		
 		lex();
 		Relop();		
 		lex();
@@ -901,7 +766,20 @@ public class SyntaxAnalyzer {
     //32
     private void Expression_Prime() {
     	output.add("<Expression Prime>  ::= + <Term> <Expression Prime>  |   - <Term> <Expression Prime>  | <Empty>");
+    	
+    	//Check if the value is of type boolean before performing arithmetic.
+    	
+    	if(lexeme.equals("+") || lexeme.equals("-") || lexeme.equals("*") || lexeme.equals("/")) {
+    		if (inAWhileOrIf == true) save = saveWhile; 	    	
+	    	if (symbolTableTypes.get(symbolTable.get(save)).equals("Boolean")) {
+    		output.add("Error, arithmetic is not allowed for boolean values.");
+            output.add("");
+            System.out.println(lexeme);
+	    	}
+    	}
+    	
     	lex();
+    	    	
         if(lexeme.equals("+")) {
         	lex();
         	//checks if there are multiple op signs that werent caught in our lexical analyzer
@@ -1009,11 +887,13 @@ public class SyntaxAnalyzer {
     	output.add("<Factor> ::=      -  <Primary>    |    <Primary>");    	
     	
     	if(token.matches("^Identifier.*")) {
+            save = lexeme;
     		if (checkSymbolTable(lexeme))
     		gen_instr("PUSHM",  get_address(lexeme));
     		duplicatePush = 1;
     	}
     	lex();
+    	
         if(lexeme.equals("-")) {
             Primary();
         	output.add("");
@@ -1028,14 +908,15 @@ public class SyntaxAnalyzer {
     }
    
     private void Primary() {	
-    	output.add("<Primary> ::=     <Identifier> <Identifier Prime>  |  <Integer>  |   ( <Expression> )   | <Real>  |   true   |  false");        
+    	output.add("<Primary> ::=     <Identifier> <Identifier Prime>  |  <Integer>  |   ( <Expression> )   |   true   |  false");        
         lex();
-	
+        
         //catching if statements for rule above
         if(token.matches("^Identifier.*")) {
+        	
             output.add("");
             output.add("Token: " + token + " Lexeme: " + lexeme);
-            
+            saveWhile = lexeme;	
             if(duplicatePush < 1) {
             	if (checkSymbolTable(lexeme))
             	gen_instr("PUSHM",  get_address(lexeme));             	
@@ -1049,7 +930,7 @@ public class SyntaxAnalyzer {
         else if(token.matches("^Integer.*")) {
         	//If the identifier associated with this token is a boolean, the only values it can accept are 1 and 0;
         	if(symbolTableTypes.get(symbolTable.get(currentIdentifier)).equals("Boolean")) {
-            	if (!lexeme.equals("0") || !lexeme.equals("1"))
+            	if (!lexeme.equals("true") || !lexeme.equals("false"))
             		error("boolean value");
             }        	
             output.add("");
@@ -1071,11 +952,6 @@ public class SyntaxAnalyzer {
                 error(")");
             }
             
-        }
-        else if(token.matches("^Real.*")){
-            output.add("");
-             output.add("Token: " + token + " Lexeme: " + lexeme);
-            return;
         }
         else if(lexeme.equals("true")){
         	//If the identifier associated with this token is an integer, then its an error
@@ -1199,7 +1075,7 @@ public class SyntaxAnalyzer {
     	    wr.write("Identifier       MemoryLocation       Type");
     	    wr.newLine();
     	for (String key: keys) {    		
-    		wr.write(String.format(formatStr ,key, symbolTable.get(key), "integer" ));
+    		wr.write(String.format(formatStr ,key, symbolTable.get(key), symbolTableTypes.get(symbolTable.get(key)) ));
     	}
     	wr.close();
     }
